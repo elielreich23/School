@@ -1,47 +1,57 @@
-package pkg.negocio;
+package negocio;
 
-import pkg.dados.Contato;
+import dados.Contato;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
 
 public class ListaTelefonica {
-    
-    // TreeMap keeps keys A-Z ordered automatically
-    private final Map<Character, List<Contato>> contatos = new TreeMap<>();
+
+    private Map<Character, List<Contato>> contatos;
 
     public ListaTelefonica() {
-        for (char c = 'A'; c <= 'Z'; c++) {
-            contatos.put(c, new ArrayList<>());
-        }
+        contatos = new HashMap<>();
     }
 
     public void adicionarContato(Contato contato) {
-        obterInicial(contato)
-            .ifPresent(inicial -> contatos.computeIfAbsent(inicial, k -> new ArrayList<>()).add(contato));
+
+        char inicial = Character.toUpperCase(
+                contato.getNome().charAt(0)
+        );
+
+        if (!contatos.containsKey(inicial)) {
+            contatos.put(inicial, new ArrayList<>());
+        }
+
+        contatos.get(inicial).add(contato);
     }
 
     public void removerContato(Contato contato) {
-        obterInicial(contato)
-            .ifPresent(inicial -> Optional.ofNullable(contatos.get(inicial)).ifPresent(list -> list.remove(contato)));
+
+        char inicial = Character.toUpperCase(
+                contato.getNome().charAt(0)
+        );
+
+        if (contatos.containsKey(inicial)) {
+
+            contatos.get(inicial).remove(contato);
+
+            if (contatos.get(inicial).isEmpty()) {
+                contatos.remove(inicial);
+            }
+        }
     }
 
-    public List<Contato> buscarContatos(char letra) {
-        return contatos.getOrDefault(Character.toUpperCase(letra), Collections.emptyList());
-    }
+    public List<Contato> buscarContatos(char inicial) {
 
-    public Map<Character, List<Contato>> buscarContatos() {
-        return Collections.unmodifiableMap(contatos);
-    }
+        inicial = Character.toUpperCase(inicial);
 
-    private Optional<Character> obterInicial(Contato contato) {
-        return Optional.ofNullable(contato)
-            .map(Contato::nome)
-            .filter(nome -> !nome.isBlank())
-            .map(nome -> Character.toUpperCase(nome.charAt(0)));
+        if (contatos.containsKey(inicial)) {
+            return contatos.get(inicial);
+        }
+
+        return new ArrayList<>();
     }
 }

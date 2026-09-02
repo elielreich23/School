@@ -1,105 +1,180 @@
-package pkg.apresentacao;
+package apresentacao;
 
-import pkg.dados.Contato;
-import pkg.negocio.ListaTelefonica;
+import dados.Contato;
+import negocio.ListaTelefonica;
 
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
 
-    private static final ListaTelefonica LISTA_TELEFONICA = new ListaTelefonica();
-    private static final Scanner SCANNER = new Scanner(System.in);
+    private static Scanner scanner = new Scanner(System.in);
+
+    private static ListaTelefonica listaTelefonica =
+            new ListaTelefonica();
 
     public static void main(String[] args) {
-        while (true) {
-            exibirMenu();
-            String opcao = SCANNER.nextLine().trim();
+
+        int opcao;
+
+        do {
+
+            System.out.println();
+            System.out.println("===== LISTA TELEFÔNICA =====");
+            System.out.println("1 - Adicionar contato");
+            System.out.println("2 - Remover contato");
+            System.out.println("3 - Exibir contatos");
+            System.out.println("4 - Buscar contatos");
+            System.out.println("0 - Sair");
+            System.out.println("============================");
+
+            System.out.print("Escolha uma opção: ");
+            opcao = scanner.nextInt();
+            scanner.nextLine();
 
             switch (opcao) {
-                case "1" -> adicionarContato();
-                case "2" -> removerContato();
-                case "3" -> exibirContatos();
-                case "4" -> solicitarEExibirPorLetra();
-                case "0" -> {
-                    System.out.println("Encerrando aplicação...");
-                    return;
-                }
-                default -> System.out.println("Opção inválida! Tente novamente.");
+
+                case 1:
+                    adicionarContato();
+                    break;
+
+                case 2:
+                    removerContato();
+                    break;
+
+                case 3:
+                    exibirContatos();
+                    break;
+
+                case 4:
+                    buscarContatos();
+                    break;
+
+                case 0:
+                    System.out.println("Programa encerrado.");
+                    break;
+
+                default:
+                    System.out.println("Opção inválida.");
+            }
+
+        } while (opcao != 0);
+
+        scanner.close();
+    }
+
+    public static void novoContato() {
+
+        System.out.print("Digite o nome: ");
+        String nome = scanner.nextLine();
+    
+        System.out.print("Digite o telefone: ");
+        long telefone = scanner.nextLong();
+        scanner.nextLine();
+    
+        Contato contato = new Contato(nome, telefone);
+    
+        listaTelefonica.adicionarContato(contato);
+    
+        System.out.println("Contato adicionado!");
+    }
+
+    public static void adicionarContato() {
+        novoContato();
+    }
+
+    public static void removerContato() {
+
+        System.out.print("Digite a inicial do contato: ");
+        char inicial = scanner.nextLine().toUpperCase().charAt(0);
+
+        List<Contato> contatos =
+                listaTelefonica.buscarContatos(inicial);
+
+        if (contatos.isEmpty()) {
+
+            System.out.println(
+                    "Nenhum contato encontrado com essa inicial."
+            );
+
+            return;
+        }
+
+        System.out.println();
+        System.out.println("Contatos encontrados:");
+
+        for (int i = 0; i < contatos.size(); i++) {
+
+            System.out.println(
+                    (i + 1) + " - " + contatos.get(i)
+            );
+        }
+
+        System.out.print("Escolha o contato para remover: ");
+        int escolha = scanner.nextInt();
+        scanner.nextLine();
+
+        if (escolha < 1 || escolha > contatos.size()) {
+
+            System.out.println("Opção inválida.");
+
+            return;
+        }
+
+        Contato contato = contatos.get(escolha - 1);
+
+        listaTelefonica.removerContato(contato);
+
+        System.out.println("Contato removido!");
+    }
+
+    public static void exibirContatos() {
+
+        for (char letra = 'A'; letra <= 'Z'; letra++) {
+
+            List<Contato> contatos =
+                    listaTelefonica.buscarContatos(letra);
+
+            System.out.println(letra + ":");
+
+            for (Contato contato : contatos) {
+
+                System.out.println(
+                        "- " + contato.getNome()
+                        + ": " + contato.getTelefone()
+                );
             }
         }
     }
 
-    public static Contato novoContato() {
-        System.out.print("Nome: ");
-        String nome = SCANNER.nextLine().trim();
-        System.out.print("Telefone: ");
-        int telefone = Integer.parseInt(SCANNER.nextLine().trim());
-        return new Contato(nome, telefone);
-    }
+    public static void buscarContatos() {
 
-    public static void adicionarContato() {
-        Contato contato = novoContato();
-        LISTA_TELEFONICA.adicionarContato(contato);
-        System.out.println("Contato adicionado com sucesso!");
-    }
+        System.out.print("Digite a inicial: ");
 
-    public static void removerContato() {
-        System.out.print("Digite a inicial do contato: ");
-        char inicial = lerLetra();
-        List<Contato> encontrados = LISTA_TELEFONICA.buscarContatos(inicial);
+        char inicial =
+                scanner.nextLine().toUpperCase().charAt(0);
 
-        if (encontrados.isEmpty()) {
-            System.out.println("Nenhum contato encontrado com a letra '" + inicial + "'.");
+        List<Contato> contatos =
+                listaTelefonica.buscarContatos(inicial);
+
+        System.out.println();
+        System.out.println(inicial + ":");
+
+        if (contatos.isEmpty()) {
+
+            System.out.println(
+                    "- Nenhum contato encontrado."
+            );
+
             return;
         }
 
-        for (int i = 0; i < encontrados.size(); i++) {
-            System.out.printf("%d - %s%n", i + 1, encontrados.get(i));
+        for (Contato contato : contatos) {
+
+            System.out.println(
+                    "- " + contato.getNome()
+                    + ": " + contato.getTelefone()
+            );
         }
-
-        System.out.print("Escolha o número do contato a remover: ");
-        int indice = Integer.parseInt(SCANNER.nextLine().trim()) - 1;
-
-        if (indice >= 0 && indice < encontrados.size()) {
-            LISTA_TELEFONICA.removerContato(encontrados.get(indice));
-            System.out.println("Contato removido!");
-        } else {
-            System.out.println("Índice inválido.");
-        }
-    }
-
-    public static void exibirContatos() {
-        LISTA_TELEFONICA.buscarContatos().forEach((letra, lista) -> {
-            System.out.println(letra + ":");
-            lista.forEach(c -> System.out.println("- " + c.nome() + ": " + c.telefone()));
-        });
-    }
-
-    public static void exibirContatos(char letra) {
-        char letraUpper = Character.toUpperCase(letra);
-        System.out.println(letraUpper + ":");
-        LISTA_TELEFONICA.buscarContatos(letraUpper)
-            .forEach(c -> System.out.println("- " + c.nome() + ": " + c.telefone()));
-    }
-
-    private static void solicitarEExibirPorLetra() {
-        System.out.print("Informe a letra: ");
-        exibirContatos(lerLetra());
-    }
-
-    private static char lerLetra() {
-        String input = SCANNER.nextLine().trim();
-        return input.isEmpty() ? ' ' : Character.toUpperCase(input.charAt(0));
-    }
-
-    private static void exibirMenu() {
-        System.out.println("\n--- LISTA TELEFÔNICA ---");
-        System.out.println("1 - Adicionar Contato");
-        System.out.println("2 - Remover Contato");
-        System.out.println("3 - Exibir Todos os Contatos");
-        System.out.println("4 - Exibir Contatos por Letra");
-        System.out.println("0 - Sair");
-        System.out.print("Opção: ");
     }
 }
