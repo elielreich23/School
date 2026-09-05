@@ -69,6 +69,19 @@ public class Principal {
 
         } while (opcao != 0);
 
+        // Testando classes da livraria
+        System.out.println("\n--- Testando classes da livraria ---");
+        livraria.dados.Cliente clienteLivraria = new livraria.dados.Cliente("Ana", "12345678900", "ana@example.com");
+        livraria.dados.Funcionario funcionarioLivraria = new livraria.dados.Funcionario("Carlos", "98765432100", "Vendedor");
+        livraria.dados.Livro livro1 = new livraria.dados.Livro("Java Basics", "John Doe", "ISBN12345", 59.90);
+        livraria.dados.Livro livro2 = new livraria.dados.Livro("Effective Java", "Joshua Bloch", "ISBN67890", 120.00);
+        System.out.println(clienteLivraria);
+        System.out.println(funcionarioLivraria);
+        System.out.println(livro1);
+        System.out.println(livro2);
+        livraria.dados.RegistroVenda venda = new livraria.dados.RegistroVenda("V001", clienteLivraria, funcionarioLivraria, new livraria.dados.Livro[]{livro1, livro2});
+        System.out.println(venda);
+        System.out.println("Valor total da venda: R$ " + venda.calcularValorVenda());
         teclado.close();
     }
 
