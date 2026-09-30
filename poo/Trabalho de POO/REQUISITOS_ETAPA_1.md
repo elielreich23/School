@@ -30,17 +30,17 @@ Os atores servem para delimitar o domínio. Autenticação e permissões de aces
 ### Financeiro
 
 - **RF09 — Mensalidades:** gerar, para cada matrícula, mensalidades numeradas com data de vencimento, valor, data de pagamento e situação (pendente, paga ou vencida).
-- **RF10 — Pagamentos:** registrar o pagamento de uma mensalidade, incluindo data, valor pago e forma de pagamento utilizada; consultar as mensalidades e pagamentos de uma matrícula.
+- **RF10 — Pagamentos:** registrar o pagamento integral de uma mensalidade pelo valor devido na data do pagamento, incluindo data e forma utilizada; consultar as mensalidades e pagamentos de uma matrícula. Pagamentos parciais não quitam a mensalidade.
 - **RF11 — Atrasos:** calcular multa e juros de pagamentos em atraso conforme parâmetros configuráveis pelo sistema. O cálculo deve poder ser consultado sem perder o valor original da mensalidade.
 - **RF12 — Materiais didáticos:** cadastrar materiais com código, título, editora, edição, tipo e preço.
 - **RF13 — Vendas:** registrar separadamente das mensalidades a venda de materiais a um aluno, contendo data, itens, quantidades e valores praticados; consultar vendas por aluno.
 
 ### Acompanhamento pedagógico
 
-- **RF14 — Avaliações:** cadastrar avaliações de um curso ou módulo com tipo (prova escrita, prova oral, trabalho ou exercício), data de aplicação, valor máximo de pontos e peso na média final.
+- **RF14 — Avaliações:** cadastrar avaliações vinculadas a um módulo com tipo (prova escrita, prova oral, trabalho ou exercício), data de aplicação, valor máximo de pontos e peso na média final.
 - **RF15 — Notas:** registrar, para cada aluno matriculado, a pontuação obtida em cada avaliação e eventuais observações do professor; consultar as notas do aluno.
 - **RF16 — Média final:** calcular a média final do aluno no módulo usando as avaliações cadastradas e seus pesos. A regra de arredondamento e a escala da média devem ser definidas como parâmetros do sistema.
-- **RF17 — Frequência:** registrar presença ou falta do aluno em cada aula/encontro da turma e calcular sua frequência percentual no curso ou módulo.
+- **RF17 — Frequência:** registrar presença ou falta do aluno em cada encontro da turma, vinculado a um módulo; cada aluno pode ter um único registro por encontro. Calcular a frequência percentual por módulo; sem registros de presença, a frequência é zero.
 - **RF18 — Aulas particulares:** agendar aulas particulares com aluno, professor, data, horário de início, horário de término, conteúdo ministrado e observações; consultar aulas por aluno ou professor.
 - **RF19 — Certificados:** registrar a conclusão de um módulo e emitir/consultar certificado contendo número, data de emissão, aluno, curso, módulo, carga horária e nota final.
 
@@ -51,11 +51,11 @@ Os atores servem para delimitar o domínio. Autenticação e permissões de aces
 - **RN03:** o professor responsável por uma turma deve estar habilitado a ministrar o idioma e o nível do curso, conforme sua formação/proficiência cadastrada.
 - **RN04:** aluno só pode ser matriculado em turma aberta no período de matrícula; turma cancelada ou concluída não aceita novas matrículas.
 - **RN05:** uma turma não pode exceder o máximo de alunos. Atingir o mínimo é condição para iniciar, conforme RF08.
-- **RN06:** cada matrícula gera a quantidade de mensalidades/parcelas informada. Valor, vencimento e situação devem ser válidos; uma mensalidade paga não pode ser paga novamente.
+- **RN06:** cada matrícula gera a quantidade de mensalidades/parcelas informada. Valor, vencimento e situação devem ser válidos; uma mensalidade paga não pode ser paga novamente. Ao cancelar uma matrícula, mensalidades ainda não pagas passam para a situação cancelada, preservando o histórico.
 - **RN07:** multa e juros incidem apenas sobre mensalidade vencida e ainda não paga. As taxas e a regra exata de cálculo precisam ser parametrizáveis, pois o enunciado não informa percentuais nem fórmula.
-- **RN08:** pontuação de avaliação deve estar entre zero e o valor máximo; peso deve ser positivo. A média considera os pesos das avaliações aplicáveis.
-- **RN09:** frequência percentual é calculada pela proporção de presenças sobre encontros com frequência registrada; encontros sem registro não entram no cálculo.
-- **RN10:** conclusão e emissão do certificado dependem da aprovação do aluno no módulo. O enunciado não define nota mínima nem frequência mínima, portanto esses limites devem ser parâmetros configuráveis.
+- **RN08:** pontuação de avaliação deve estar entre zero e o valor máximo; peso deve ser positivo. Cada avaliação aceita no máximo uma nota por matrícula, e a avaliação deve pertencer ao curso da matrícula. A média considera os pesos das avaliações aplicáveis.
+- **RN09:** frequência percentual por módulo é calculada pela proporção de presenças sobre encontros daquele módulo com frequência registrada; encontros sem registro não entram no cálculo. Não se pode lançar frequência em encontro de outra turma nem duplicar registro.
+- **RN10:** conclusão e emissão do certificado dependem da aprovação do aluno no módulo e de esse módulo pertencer ao curso da matrícula. A frequência usada é a do módulo; não se emite certificado duplicado para o mesmo aluno e módulo. O enunciado não define nota mínima nem frequência mínima, portanto esses limites devem ser parâmetros configuráveis.
 - **RN11:** venda de material é um registro financeiro separado das mensalidades e deve preservar preço e quantidade praticados na venda.
 - **RN12:** operações de remoção devem preservar a consistência dos relacionamentos. Registros com histórico (matrículas, pagamentos, notas, frequência, vendas e certificados) devem ser cancelados/inativados ou ter remoção impedida, em vez de apagar o histórico.
 

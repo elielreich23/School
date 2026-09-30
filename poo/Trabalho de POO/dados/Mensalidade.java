@@ -94,7 +94,7 @@ public class Mensalidade {
     }
 
     public boolean isVencida(LocalDate dataReferencia) {
-        if (situacao == SituacaoMensalidade.PAGA) return false;
+        if (situacao == SituacaoMensalidade.PAGA || situacao == SituacaoMensalidade.CANCELADA) return false;
         return vencimento != null && dataReferencia != null && dataReferencia.isAfter(vencimento);
     }
 

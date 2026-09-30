@@ -150,10 +150,10 @@ public class Programa {
         turmaIngles.adicionarHorario(new HorarioTurma(DayOfWeek.WEDNESDAY, LocalTime.of(19, 0), LocalTime.of(20, 30), "Sala 101"));
 
         // Adicionando encontros/aulas programadas
-        Encontro encontro1 = new Encontro(LocalDate.now().plusDays(1), LocalTime.of(19, 0), LocalTime.of(20, 30));
-        Encontro encontro2 = new Encontro(LocalDate.now().plusDays(3), LocalTime.of(19, 0), LocalTime.of(20, 30));
-        Encontro encontro3 = new Encontro(LocalDate.now().plusDays(8), LocalTime.of(19, 0), LocalTime.of(20, 30));
-        Encontro encontro4 = new Encontro(LocalDate.now().plusDays(10), LocalTime.of(19, 0), LocalTime.of(20, 30));
+        Encontro encontro1 = new Encontro(LocalDate.now().plusDays(1), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
+        Encontro encontro2 = new Encontro(LocalDate.now().plusDays(3), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
+        Encontro encontro3 = new Encontro(LocalDate.now().plusDays(8), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
+        Encontro encontro4 = new Encontro(LocalDate.now().plusDays(10), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
         turmaIngles.adicionarEncontro(encontro1);
         turmaIngles.adicionarEncontro(encontro2);
         turmaIngles.adicionarEncontro(encontro3);
@@ -324,11 +324,13 @@ public class Programa {
         Aluno alunoReprovado = new Aluno("João Teste", "000.111.222-33", LocalDate.of(2000, 1, 1), "Rua A", "111", "joao@email.com");
         sistema.cadastrarAluno(alunoReprovado);
         Turma turmaIngles2 = new Turma("TURMA-ING-02", cursoIngles, profCarlos, LocalDate.now().minusDays(5), LocalDate.now().plusDays(20), 1, 10);
+        Encontro encontroReprovado = new Encontro(LocalDate.now().plusDays(1), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
+        turmaIngles2.adicionarEncontro(encontroReprovado);
         sistema.cadastrarTurma(turmaIngles2);
         Matricula matReprovada = sistema.matricular(alunoReprovado, turmaIngles2, new Matricula("MAT-2026-003", alunoReprovado, turmaIngles2, LocalDate.now(), new BigDecimal("350.00"), 1, BigDecimal.ZERO, "Boleto"));
         sistema.registrarNota(matReprovada, provaEscrita, new Nota(provaEscrita, new BigDecimal("4.0"), "Insuficiente"));
         sistema.registrarNota(matReprovada, provaOral, new Nota(provaOral, new BigDecimal("5.0"), "Insuficiente"));
-        sistema.registrarFrequencia(matReprovada, encontro1, true);
+        sistema.registrarFrequencia(matReprovada, encontroReprovado, true);
 
         System.out.println("\n[Teste RN10] Tentando emitir certificado para aluno com média abaixo de 7.0:");
         try {

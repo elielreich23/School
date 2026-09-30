@@ -22,6 +22,7 @@ package "dados" {
     PENDENTE
     PAGA
     VENCIDA
+    CANCELADA
   }
 
   enum TipoAvaliacao {
@@ -173,16 +174,18 @@ package "dados" {
     - data: LocalDate
     - horarioInicio: LocalTime
     - horarioTermino: LocalTime
+    - modulo: Modulo
   }
 
-  Curso "1" *-- "1..*" Modulo : organiza
+  Curso "1" *-- "0..*" Modulo : organiza
   Modulo "0..*" -- "0..*" Modulo : pre-requisitos
-  Professor "1" *-- "1..*" IdiomaProfissional : qualificacoes
+  Professor "1" *-- "0..*" IdiomaProfissional : qualificacoes
   Aluno "1" *-- "0..*" IdiomaInteresse : interesses
   Curso "1" -- "0..*" Turma : oferta
   Professor "1" -- "0..*" Turma : responsavel
-  Turma "1" *-- "1..*" HorarioTurma : horarios
+  Turma "1" *-- "0..*" HorarioTurma : horarios
   Turma "1" *-- "0..*" Encontro : agenda
+  Modulo "1" -- "0..*" Encontro : aulas do modulo
   Aluno "1" -- "0..*" Matricula
   Turma "1" -- "0..*" Matricula
   Matricula "1" *-- "1..*" Mensalidade
@@ -195,6 +198,7 @@ package "dados" {
   Aluno "1" -- "0..*" AulaParticular
   Professor "1" -- "0..*" AulaParticular
   Aluno "1" -- "0..*" Certificado
+  Curso "1" -- "0..*" Certificado
   Modulo "1" -- "0..*" Certificado
   Venda "1" *-- "1..*" ItemVenda
   Aluno "1" -- "0..*" Venda
@@ -223,19 +227,33 @@ package "negocio" {
     - notaMinima: BigDecimal
     - frequenciaMinima: BigDecimal
     + cadastrarCurso(curso: Curso): void
+    + consultarCurso(codigo: String): Curso
+    + atualizarCurso(curso: Curso): void
+    + removerCurso(codigo: String): void
+    + cadastrarModulo(codigoCurso: String, modulo: Modulo): void
+    + consultarModulosCurso(codigoCurso: String): List<Modulo>
     + cadastrarProfessor(professor: Professor): void
+    + consultarProfessor(cpf: String): Professor
+    + atualizarProfessor(professor: Professor): void
+    + removerProfessor(cpf: String): void
     + cadastrarAluno(aluno: Aluno): void
+    + consultarAluno(cpf: String): Aluno
+    + atualizarAluno(aluno: Aluno): void
+    + removerAluno(cpf: String): void
     + cadastrarTurma(turma: Turma): void
     + matricular(aluno: Aluno, turma: Turma, dados: Matricula): Matricula
+    + cancelarMatricula(numero: String): void
     + gerarMensalidades(matricula: Matricula): void
     + registrarPagamento(mensalidade: Mensalidade, pagamento: Pagamento): void
     + calcularTotalEmAtraso(mensalidade: Mensalidade, hoje: LocalDate): BigDecimal
+    + cadastrarAvaliacao(avaliacao: Avaliacao): void
     + registrarNota(matricula: Matricula, avaliacao: Avaliacao, nota: Nota): void
     + calcularMediaFinal(matricula: Matricula, modulo: Modulo): BigDecimal
     + registrarFrequencia(matricula: Matricula, encontro: Encontro, presente: boolean): void
     + calcularFrequencia(matricula: Matricula): BigDecimal
-    + concluirModulo(matricula: Matricula, modulo: Modulo): Certificado
+    + calcularFrequencia(matricula: Matricula, modulo: Modulo): BigDecimal
     + agendarAulaParticular(aula: AulaParticular): void
+    + concluirModulo(matricula: Matricula, modulo: Modulo): Certificado
     + cadastrarMaterial(material: Material): void
     + registrarVenda(venda: Venda): void
   }
@@ -249,11 +267,16 @@ package "negocio" {
   Sistema "1" o-- "0..*" Aluno : gerencia
   Sistema "1" o-- "0..*" Turma : gerencia
   Sistema "1" o-- "0..*" Matricula : gerencia
+  Sistema "1" o-- "0..*" Mensalidade : gerencia
+  Sistema "1" o-- "0..*" Pagamento : gerencia
+  Sistema "1" o-- "0..*" Avaliacao : gerencia
+  Sistema "1" o-- "0..*" Nota : gerencia
+  Sistema "1" o-- "0..*" RegistroFrequencia : gerencia
+  Sistema "1" o-- "0..*" AulaParticular : gerencia
+  Sistema "1" o-- "0..*" Certificado : gerencia
   Sistema "1" o-- "0..*" Material : gerencia
   Sistema "1" o-- "0..*" Venda : gerencia
-  Sistema "1" ..> Avaliacao : coordena
-  Sistema "1" ..> AulaParticular : coordena
-  Sistema "1" ..> Certificado : emite
+  Sistema "1" o-- "0..*" ItemVenda : gerencia
   Programa ..> Sistema : testa
 }
 

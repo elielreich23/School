@@ -42,23 +42,23 @@ public class Sistema {
     }
 
     public Sistema(BigDecimal taxaMulta, BigDecimal taxaJurosMensal, BigDecimal notaMinima, BigDecimal frequenciaMinima) {
-        if (taxaMulta != null) this.taxaMulta = taxaMulta;
-        if (taxaJurosMensal != null) this.taxaJurosMensal = taxaJurosMensal;
-        if (notaMinima != null) this.notaMinima = notaMinima;
-        if (frequenciaMinima != null) this.frequenciaMinima = frequenciaMinima;
+        if (taxaMulta != null) setTaxaMulta(taxaMulta);
+        if (taxaJurosMensal != null) setTaxaJurosMensal(taxaJurosMensal);
+        if (notaMinima != null) setNotaMinima(notaMinima);
+        if (frequenciaMinima != null) setFrequenciaMinima(frequenciaMinima);
     }
 
     // --- Getters e Setters de Configurações ---
     public BigDecimal getTaxaMulta() { return taxaMulta; }
-    public void setTaxaMulta(BigDecimal taxaMulta) { this.taxaMulta = taxaMulta; }
+    public void setTaxaMulta(BigDecimal taxaMulta) { this.taxaMulta = validarPercentualNaoNegativo(taxaMulta, "Taxa de multa"); }
     public BigDecimal getTaxaJurosMensal() { return taxaJurosMensal; }
-    public void setTaxaJurosMensal(BigDecimal taxaJurosMensal) { this.taxaJurosMensal = taxaJurosMensal; }
+    public void setTaxaJurosMensal(BigDecimal taxaJurosMensal) { this.taxaJurosMensal = validarPercentualNaoNegativo(taxaJurosMensal, "Taxa de juros"); }
     public BigDecimal getNotaMinima() { return notaMinima; }
-    public void setNotaMinima(BigDecimal notaMinima) { this.notaMinima = notaMinima; }
+    public void setNotaMinima(BigDecimal notaMinima) { this.notaMinima = validarPercentualNaoNegativo(notaMinima, "Nota mínima"); }
     public BigDecimal getFrequenciaMinima() { return frequenciaMinima; }
-    public void setFrequenciaMinima(BigDecimal frequenciaMinima) { this.frequenciaMinima = frequenciaMinima; }
+    public void setFrequenciaMinima(BigDecimal frequenciaMinima) { this.frequenciaMinima = validarIntervaloUnitario(frequenciaMinima, "Frequência mínima"); }
     public int getEscalaMedia() { return escalaMedia; }
-    public void setEscalaMedia(int escalaMedia) { this.escalaMedia = escalaMedia; }
+    public void setEscalaMedia(int escalaMedia) { if (escalaMedia < 0) throw new RegraNegocioException("Escala da média não pode ser negativa."); this.escalaMedia = escalaMedia; }
     public RoundingMode getModoArredondamento() { return modoArredondamento; }
 
     // --- Getters das Coleções ---
@@ -310,6 +310,11 @@ public class Sistema {
                 turma.getFimMatricula().isBefore(turma.getInicioMatricula())) {
             throw new RegraNegocioException("Data de término de matrícula não pode ser anterior ao início.");
         }
+        for (Encontro encontro : turma.getEncontros()) {
+            if (encontro.getModulo() == null || !moduloPertenceCurso(turma.getCurso(), encontro.getModulo())) {
+                throw new RegraNegocioException("Cada encontro deve estar associado a um módulo do curso da turma.");
+            }
+        }
         turmas.add(turma);
     }
 
@@ -330,6 +335,13 @@ public class Sistema {
     public void adicionarEncontroTurma(String codigoTurma, Encontro encontro) {
         Turma turma = consultarTurma(codigoTurma);
         if (turma == null) throw new RegraNegocioException("Turma não encontrada: " + codigoTurma);
+        if (encontro == null || encontro.getModulo() == null ||
+                !moduloPertenceCurso(turma.getCurso(), encontro.getModulo())) {
+            throw new RegraNegocioException("Encontro deve estar associado a um módulo do curso da turma.");
+        }
+        if (turma.getEncontros().stream().anyMatch(e -> e == encontro)) {
+            throw new RegraNegocioException("Encontro já está cadastrado na turma.");
+        }
         turma.adicionarEncontro(encontro);
     }
 
@@ -356,12 +368,18 @@ public class Sistema {
     // RF07, RF08 — Matrículas & RN04, RN05, RN06, RN12
     // ==========================================
     public Matricula matricular(Aluno aluno, Turma turma, Matricula dados) {
-        if (aluno == null || consultarAluno(aluno.getCpf()) == null) {
+        Aluno alunoCadastrado = aluno == null ? null : consultarAluno(aluno.getCpf());
+        if (alunoCadastrado == null) {
             throw new RegraNegocioException("Aluno inválido ou não cadastrado.");
         }
-        if (turma == null || consultarTurma(turma.getCodigo()) == null) {
+        Turma turmaCadastrada = turma == null ? null : consultarTurma(turma.getCodigo());
+        if (turmaCadastrada == null) {
             throw new RegraNegocioException("Turma inválida ou não cadastrada.");
         }
+        aluno = alunoCadastrado;
+        turma = turmaCadastrada;
+        final Aluno alunoFinal = aluno;
+        final Turma turmaFinal = turma;
         if (dados == null) {
             throw new RegraNegocioException("Dados da matrícula não informados.");
         }
@@ -378,7 +396,7 @@ public class Sistema {
 
         // RN05: Limite máximo de alunos
         long totalAtivos = matriculas.stream()
-                .filter(m -> m.getTurma().equals(turma) && m.isAtiva())
+                .filter(m -> m.getTurma().equals(turmaFinal) && m.isAtiva())
                 .count();
         if (totalAtivos >= turma.getMaximoAlunos()) {
             throw new RegraNegocioException("RN05: Limite máximo de alunos (" + turma.getMaximoAlunos() + ") já atingido nesta turma.");
@@ -386,18 +404,31 @@ public class Sistema {
 
         // Checar se já matriculado ativamente na turma
         boolean jaMatriculado = matriculas.stream()
-                .anyMatch(m -> m.getAluno().equals(aluno) && m.getTurma().equals(turma) && m.isAtiva());
+                .anyMatch(m -> m.getAluno().equals(alunoFinal) && m.getTurma().equals(turmaFinal) && m.isAtiva());
         if (jaMatriculado) {
             throw new RegraNegocioException("Aluno já possui matrícula ativa nesta turma.");
+        }
+
+        BigDecimal valor = dados.getValorMensalidade();
+        BigDecimal desconto = dados.getDesconto() == null ? BigDecimal.ZERO : dados.getDesconto();
+        if (dados.getQuantidadeParcelas() <= 0 || valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RegraNegocioException("Matrícula deve ter parcelas e valor mensal positivos.");
+        }
+        if (desconto.compareTo(BigDecimal.ZERO) < 0 || desconto.compareTo(valor) >= 0) {
+            throw new RegraNegocioException("Desconto deve ser não negativo e menor que o valor da mensalidade.");
         }
 
         String numero = dados.getNumero();
         if (numero == null || numero.isBlank()) {
             numero = "MAT-" + (matriculas.size() + 1);
         }
+        final String numeroFinal = numero.trim();
+        if (matriculas.stream().anyMatch(m -> m.getNumero().equalsIgnoreCase(numeroFinal))) {
+            throw new RegraNegocioException("Já existe matrícula com o número '" + numeroFinal + "'.");
+        }
 
         Matricula novaMatricula = new Matricula(
-                numero,
+                numeroFinal,
                 aluno,
                 turma,
                 dataRef,
@@ -425,10 +456,10 @@ public class Sistema {
         }
         // RN12: Inativar a matrícula preservando histórico
         matricula.setAtiva(false);
-        // Mensalidades pendentes são canceladas ou marcadas
+        // Mantém o histórico, mas cancela cobranças ainda não pagas.
         for (Mensalidade m : matricula.getMensalidades()) {
-            if (m.getSituacao() == SituacaoMensalidade.PENDENTE) {
-                m.setSituacao(SituacaoMensalidade.PENDENTE); // preserva status original
+            if (m.getSituacao() == SituacaoMensalidade.PENDENTE || m.getSituacao() == SituacaoMensalidade.VENCIDA) {
+                m.setSituacao(SituacaoMensalidade.CANCELADA);
             }
         }
     }
@@ -449,8 +480,11 @@ public class Sistema {
     // RF09, RF10, RF11 — Mensalidades, Pagamentos & RN06, RN07
     // ==========================================
     public void gerarMensalidades(Matricula matricula) {
-        if (matricula == null) {
-            throw new RegraNegocioException("Matrícula não pode ser nula para gerar mensalidades.");
+        if (!matriculaRegistrada(matricula)) {
+            throw new RegraNegocioException("Matrícula deve estar cadastrada no sistema para gerar mensalidades.");
+        }
+        if (!matricula.getMensalidades().isEmpty()) {
+            throw new RegraNegocioException("Mensalidades já foram geradas para esta matrícula.");
         }
         if (matricula.getQuantidadeParcelas() <= 0) {
             throw new RegraNegocioException("RN06: Quantidade de parcelas deve ser maior que zero.");
@@ -480,6 +514,9 @@ public class Sistema {
             throw new RegraNegocioException("Mensalidade não informada.");
         }
         if (hoje == null) hoje = LocalDate.now();
+        if (mensalidade.getSituacao() == SituacaoMensalidade.CANCELADA) {
+            throw new RegraNegocioException("Mensalidade cancelada não pode ser recalculada.");
+        }
 
         // Se já está paga, valor não muda
         if (mensalidade.getSituacao() == SituacaoMensalidade.PAGA) {
@@ -511,18 +548,32 @@ public class Sistema {
         if (mensalidade == null || pagamento == null) {
             throw new RegraNegocioException("Mensalidade e pagamento são obrigatórios.");
         }
-        // RN06: Uma mensalidade paga não pode ser paga novamente
+        if (mensalidades.stream().noneMatch(m -> m == mensalidade)) {
+            throw new RegraNegocioException("Mensalidade não pertence a este sistema.");
+        }
         if (mensalidade.getSituacao() == SituacaoMensalidade.PAGA) {
             throw new RegraNegocioException("RN06: Esta mensalidade já foi paga em " + mensalidade.getDataPagamento() + ".");
+        }
+        if (mensalidade.getSituacao() == SituacaoMensalidade.CANCELADA) {
+            throw new RegraNegocioException("Não é possível pagar uma mensalidade cancelada.");
         }
         if (pagamento.getValorPago() == null || pagamento.getValorPago().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RegraNegocioException("Valor pago deve ser maior que zero.");
         }
+        LocalDate dataPagamento = pagamento.getData() == null ? LocalDate.now() : pagamento.getData();
+        if (dataPagamento.isAfter(LocalDate.now())) {
+            throw new RegraNegocioException("Data de pagamento não pode estar no futuro.");
+        }
+        BigDecimal valorDevido = calcularTotalEmAtraso(mensalidade, dataPagamento);
+        if (pagamento.getValorPago().compareTo(valorDevido) != 0) {
+            throw new RegraNegocioException("Pagamento deve corresponder ao total devido: R$ " + valorDevido + ".");
+        }
 
+        pagamento.setData(dataPagamento);
+        mensalidade.setValorAtualizado(valorDevido);
         mensalidade.setSituacao(SituacaoMensalidade.PAGA);
-        mensalidade.setDataPagamento(pagamento.getData() != null ? pagamento.getData() : LocalDate.now());
+        mensalidade.setDataPagamento(dataPagamento);
         mensalidade.setPagamento(pagamento);
-
         pagamentos.add(pagamento);
     }
 
@@ -563,21 +614,38 @@ public class Sistema {
         if (venda == null) {
             throw new RegraNegocioException("Venda não pode ser nula.");
         }
-        if (venda.getAluno() == null || consultarAluno(venda.getAluno().getCpf()) == null) {
+        if (venda.getNumero() == null || venda.getNumero().isBlank()) {
+            throw new RegraNegocioException("Número da venda é obrigatório.");
+        }
+        if (vendas.stream().anyMatch(v -> v.getNumero().equalsIgnoreCase(venda.getNumero().trim()))) {
+            throw new RegraNegocioException("Já existe venda com o número '" + venda.getNumero() + "'.");
+        }
+        Aluno alunoCadastrado = venda.getAluno() == null ? null : consultarAluno(venda.getAluno().getCpf());
+        if (alunoCadastrado == null) {
             throw new RegraNegocioException("Aluno da venda deve estar cadastrado no sistema.");
         }
         if (venda.getItens() == null || venda.getItens().isEmpty()) {
             throw new RegraNegocioException("RN11: Venda deve possuir ao menos um item de material.");
         }
         for (ItemVenda item : venda.getItens()) {
+            if (item == null || item.getMaterial() == null) {
+                throw new RegraNegocioException("Cada item da venda deve referenciar um material cadastrado.");
+            }
+            Material materialCadastrado = consultarMaterial(item.getMaterial().getCodigo());
+            if (materialCadastrado == null) {
+                throw new RegraNegocioException("Material da venda não está cadastrado no sistema.");
+            }
             if (item.getQuantidade() <= 0) {
                 throw new RegraNegocioException("Quantidade do item deve ser maior que zero.");
             }
             if (item.getPrecoUnitario() == null || item.getPrecoUnitario().compareTo(BigDecimal.ZERO) < 0) {
                 throw new RegraNegocioException("Preço unitário do item inválido.");
             }
-            itensVenda.add(item);
+            item.setMaterial(materialCadastrado);
         }
+        venda.setNumero(venda.getNumero().trim());
+        venda.setAluno(alunoCadastrado);
+        itensVenda.addAll(venda.getItens());
         vendas.add(venda);
     }
 
@@ -597,6 +665,12 @@ public class Sistema {
         if (avaliacao.getIdentificador() == null || avaliacao.getIdentificador().isBlank()) {
             throw new RegraNegocioException("Identificador da avaliação é obrigatório.");
         }
+        if (avaliacoes.stream().anyMatch(a -> a.getIdentificador().equalsIgnoreCase(avaliacao.getIdentificador().trim()))) {
+            throw new RegraNegocioException("Já existe avaliação com o identificador '" + avaliacao.getIdentificador() + "'.");
+        }
+        if (avaliacao.getModulo() == null || !moduloPertenceAAlgumCurso(avaliacao.getModulo())) {
+            throw new RegraNegocioException("A avaliação deve pertencer a um módulo cadastrado.");
+        }
         // RN08: peso positivo e valor máximo positivo
         if (avaliacao.getValorMaximo() == null || avaliacao.getValorMaximo().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RegraNegocioException("RN08: Valor máximo da avaliação deve ser maior que zero.");
@@ -604,12 +678,24 @@ public class Sistema {
         if (avaliacao.getPeso() == null || avaliacao.getPeso().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RegraNegocioException("RN08: Peso da avaliação deve ser positivo.");
         }
-        avaliacoes.add(avaliacao);
+        avaliacao.getModulo().adicionarAvaliacao(avaliacao);
     }
 
     public void registrarNota(Matricula matricula, Avaliacao avaliacao, Nota nota) {
         if (matricula == null || avaliacao == null || nota == null) {
             throw new RegraNegocioException("Matrícula, avaliação e nota são obrigatórios.");
+        }
+        if (!matriculaRegistrada(matricula) || !matricula.isAtiva()) {
+            throw new RegraNegocioException("A matrícula deve estar ativa e cadastrada no sistema.");
+        }
+        if (avaliacoes.stream().noneMatch(a -> a == avaliacao)) {
+            throw new RegraNegocioException("A avaliação não está cadastrada no sistema.");
+        }
+        if (!moduloPertenceCurso(matricula.getTurma().getCurso(), avaliacao.getModulo())) {
+            throw new RegraNegocioException("A avaliação não pertence ao curso da matrícula.");
+        }
+        if (matricula.getNotas().stream().anyMatch(n -> n.getAvaliacao() == avaliacao)) {
+            throw new RegraNegocioException("Já existe nota registrada para esta avaliação nesta matrícula.");
         }
         // RN08: Pontuação deve estar entre 0 e o valor máximo
         if (nota.getPontuacao() == null ||
@@ -624,12 +710,13 @@ public class Sistema {
     }
 
     public BigDecimal calcularMediaFinal(Matricula matricula, Modulo modulo) {
-        if (matricula == null || modulo == null) {
-            throw new RegraNegocioException("Matrícula e módulo são obrigatórios para calcular a média final.");
+        if (!matriculaRegistrada(matricula) || modulo == null ||
+                !moduloPertenceCurso(matricula.getTurma().getCurso(), modulo)) {
+            throw new RegraNegocioException("Matrícula e módulo devem pertencer ao mesmo curso cadastrado.");
         }
         // Notas do aluno que pertencem a avaliações deste módulo
         List<Nota> notasModulo = matricula.getNotas().stream()
-                .filter(n -> n.getAvaliacao() != null && modulo.equals(n.getAvaliacao().getModulo()))
+                .filter(n -> n.getAvaliacao() != null && modulo == n.getAvaliacao().getModulo())
                 .collect(Collectors.toList());
 
         if (notasModulo.isEmpty()) {
@@ -659,23 +746,40 @@ public class Sistema {
         if (matricula == null || encontro == null) {
             throw new RegraNegocioException("Matrícula e encontro são obrigatórios para registrar frequência.");
         }
+        if (!matriculaRegistrada(matricula) || !matricula.isAtiva()) {
+            throw new RegraNegocioException("A matrícula deve estar ativa e cadastrada no sistema.");
+        }
+        Turma turma = matricula.getTurma();
+        if (turma.getEncontros().stream().noneMatch(e -> e == encontro)) {
+            throw new RegraNegocioException("O encontro não pertence à turma da matrícula.");
+        }
+        if (encontro.getModulo() == null || !moduloPertenceCurso(turma.getCurso(), encontro.getModulo())) {
+            throw new RegraNegocioException("O encontro deve estar associado a um módulo do curso da turma.");
+        }
+        if (matricula.getRegistrosFrequencia().stream().anyMatch(r -> r.getEncontro() == encontro)) {
+            throw new RegraNegocioException("A frequência deste aluno já foi registrada para o encontro.");
+        }
         RegistroFrequencia reg = new RegistroFrequencia(encontro, encontro.getData(), presente);
         matricula.adicionarRegistroFrequencia(reg);
         registrosFrequencia.add(reg);
     }
 
     public BigDecimal calcularFrequencia(Matricula matricula) {
-        if (matricula == null) {
-            throw new RegraNegocioException("Matrícula não informada.");
+        if (!matriculaRegistrada(matricula)) {
+            throw new RegraNegocioException("Matrícula não cadastrada no sistema.");
         }
-        List<RegistroFrequencia> regs = matricula.getRegistrosFrequencia();
-        // RN09: Proporção de presenças sobre encontros com frequência registrada
-        if (regs == null || regs.isEmpty()) {
-            return BigDecimal.ONE.setScale(escalaMedia, modoArredondamento); // Sem registros: 100%
+        return calcularPercentualPresenca(matricula.getRegistrosFrequencia());
+    }
+
+    public BigDecimal calcularFrequencia(Matricula matricula, Modulo modulo) {
+        if (!matriculaRegistrada(matricula) || modulo == null ||
+                !moduloPertenceCurso(matricula.getTurma().getCurso(), modulo)) {
+            throw new RegraNegocioException("Matrícula e módulo devem pertencer ao mesmo curso cadastrado.");
         }
-        long presencas = regs.stream().filter(RegistroFrequencia::isPresente).count();
-        return BigDecimal.valueOf(presencas)
-                .divide(BigDecimal.valueOf(regs.size()), escalaMedia, modoArredondamento);
+        List<RegistroFrequencia> registrosModulo = matricula.getRegistrosFrequencia().stream()
+                .filter(r -> r.getEncontro() != null && r.getEncontro().getModulo() == modulo)
+                .collect(Collectors.toList());
+        return calcularPercentualPresenca(registrosModulo);
     }
 
     // ==========================================
@@ -714,12 +818,19 @@ public class Sistema {
     // RF19 — Conclusão de Módulo & Certificado (RN01, RN10)
     // ==========================================
     public Certificado concluirModulo(Matricula matricula, Modulo modulo) {
-        if (matricula == null || modulo == null) {
-            throw new RegraNegocioException("Matrícula e módulo são obrigatórios para conclusão.");
+        if (matricula == null || modulo == null || !matriculaRegistrada(matricula) || !matricula.isAtiva()) {
+            throw new RegraNegocioException("É necessária uma matrícula ativa e cadastrada para concluir módulo.");
+        }
+        Curso curso = matricula.getTurma().getCurso();
+        if (!moduloPertenceCurso(curso, modulo)) {
+            throw new RegraNegocioException("O módulo não pertence ao curso da matrícula.");
+        }
+        if (certificados.stream().anyMatch(c -> c.getAluno().equals(matricula.getAluno()) && c.getModulo() == modulo)) {
+            throw new RegraNegocioException("Já existe certificado para este aluno e módulo.");
         }
 
         BigDecimal mediaFinal = calcularMediaFinal(matricula, modulo);
-        BigDecimal frequencia = calcularFrequencia(matricula);
+        BigDecimal frequencia = calcularFrequencia(matricula, modulo);
 
         // RN10: Validação de nota e frequência mínimas
         if (mediaFinal.compareTo(notaMinima) < 0) {
@@ -745,6 +856,42 @@ public class Sistema {
 
         certificados.add(cert);
         return cert;
+    }
+
+    private BigDecimal validarPercentualNaoNegativo(BigDecimal valor, String nome) {
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) < 0) {
+            throw new RegraNegocioException(nome + " não pode ser nula nem negativa.");
+        }
+        return valor;
+    }
+
+    private BigDecimal validarIntervaloUnitario(BigDecimal valor, String nome) {
+        validarPercentualNaoNegativo(valor, nome);
+        if (valor.compareTo(BigDecimal.ONE) > 0) {
+            throw new RegraNegocioException(nome + " deve estar entre zero e um.");
+        }
+        return valor;
+    }
+
+    private boolean matriculaRegistrada(Matricula matricula) {
+        return matricula != null && matriculas.stream().anyMatch(m -> m == matricula);
+    }
+
+    private boolean moduloPertenceAAlgumCurso(Modulo modulo) {
+        return modulo != null && cursos.stream().anyMatch(c -> moduloPertenceCurso(c, modulo));
+    }
+
+    private boolean moduloPertenceCurso(Curso curso, Modulo modulo) {
+        return curso != null && modulo != null && curso.getModulos().stream().anyMatch(m -> m == modulo);
+    }
+
+    private BigDecimal calcularPercentualPresenca(List<RegistroFrequencia> registros) {
+        if (registros == null || registros.isEmpty()) {
+            return BigDecimal.ZERO.setScale(escalaMedia, modoArredondamento);
+        }
+        long presencas = registros.stream().filter(RegistroFrequencia::isPresente).count();
+        return BigDecimal.valueOf(presencas)
+                .divide(BigDecimal.valueOf(registros.size()), escalaMedia, modoArredondamento);
     }
 
     public List<Certificado> consultarCertificadosPorAluno(String cpfAluno) {
