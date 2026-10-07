@@ -1,364 +1,611 @@
 package negocio;
 
 import dados.*;
+import dados.enums.NivelCurso;
+import dados.enums.TipoAvaliacao;
 
-import java.math.BigDecimal;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
+import java.util.Scanner;
 
 public class Programa {
 
     public static void main(String[] args) {
-        System.out.println("===============================================================================");
-        System.out.println("     SISTEMA DE GESTÃO DE ESCOLA DE IDIOMAS — DEMONSTRAÇÃO ETAPA I");
-        System.out.println("===============================================================================\n");
-
+        Scanner scanner = new Scanner(System.in);
         Sistema sistema = new Sistema();
+        int opcao = -1;
 
-        // Configuração dos parâmetros globais do sistema
-        sistema.setTaxaMulta(new BigDecimal("0.02"));       // Multa de 2%
-        sistema.setTaxaJurosMensal(new BigDecimal("0.01")); // Juros de 1% ao mês
-        sistema.setNotaMinima(new BigDecimal("7.0"));       // Nota mínima 7.0
-        sistema.setFrequenciaMinima(new BigDecimal("0.75")); // Frequência mínima 75%
+        while (opcao != 0) {
+            mostrarMenu();
+            opcao = lerInteiro(scanner);
 
-        // ---------------------------------------------------------------------------
-        // 1. CADASTROS ACADÊMICOS (RF01, RF02, RF03, RF04) & REGRAS DE NEGÓCIO (RN01, RN02)
-        // ---------------------------------------------------------------------------
-        System.out.println(">>> 1. CADASTRO DE CURSOS E MÓDULOS (RF01, RF02)");
-        Curso cursoIngles = new Curso(
-                "ING-BAS",
-                "Inglês",
-                NivelCurso.BASICO,
-                80,
-                "Fundamentos da língua inglesa: gramática essencial, vocabulário e conversação.",
-                "Livro English File Starter, Caderno de Exercícios"
-        );
-        sistema.cadastrarCurso(cursoIngles);
-        System.out.println("Curso cadastrado: " + cursoIngles);
-
-        // Módulos com sequência e pré-requisito (RN02)
-        Modulo mod1 = new Modulo(1, "English Starter - Módulo 1", 40, "Noite");
-        Modulo mod2 = new Modulo(2, "English Starter - Módulo 2", 40, "Noite");
-        mod2.adicionarPreRequisito(mod1);
-
-        sistema.cadastrarModulo(cursoIngles.getCodigo(), mod1);
-        sistema.cadastrarModulo(cursoIngles.getCodigo(), mod2);
-        System.out.println("Módulos cadastrados para o curso:");
-        for (Modulo m : sistema.consultarModulosCurso("ING-BAS")) {
-            System.out.println("  - " + m + " (Pré-requisitos: " + m.getPreRequisitos().size() + ")");
+            switch (opcao) {
+                case 1:
+                    cadastrarAluno(scanner, sistema);
+                    break;
+                case 2:
+                    cadastrarProfessor(scanner, sistema);
+                    break;
+                case 3:
+                    cadastrarCurso(scanner, sistema);
+                    break;
+                case 4:
+                    adicionarModulo(scanner, sistema);
+                    break;
+                case 5:
+                    cadastrarTurma(scanner, sistema);
+                    break;
+                case 6:
+                    matricularAluno(scanner, sistema);
+                    break;
+                case 7:
+                    cadastrarAvaliacao(scanner, sistema);
+                    break;
+                case 8:
+                    registrarNota(scanner, sistema);
+                    break;
+                case 9:
+                    cadastrarMensalidade(scanner, sistema);
+                    break;
+                case 10:
+                    registrarPagamento(scanner, sistema);
+                    break;
+                case 11:
+                    cadastrarEncontro(scanner, sistema);
+                    break;
+                case 12:
+                    menuListar(scanner, sistema);
+                    break;
+                case 0:
+                    System.out.println("Saindo...");
+                    break;
+                default:
+                    System.out.println("Opção inválida.");
+                    break;
+            }
+            System.out.println();
         }
 
-        // Teste de RN01: Tentar cadastrar curso com código duplicado
-        System.out.println("\n[Teste RN01] Tentando cadastrar curso com código duplicado 'ING-BAS':");
+        scanner.close();
+    }
+
+    private static void mostrarMenu() {
+        System.out.println("====================================");
+        System.out.println("        ESCOLA DE IDIOMAS");
+        System.out.println("====================================");
+        System.out.println();
+        System.out.println("1 - Cadastrar aluno");
+        System.out.println("2 - Cadastrar professor");
+        System.out.println("3 - Cadastrar curso");
+        System.out.println("4 - Adicionar módulo ao curso");
+        System.out.println("5 - Cadastrar turma");
+        System.out.println("6 - Matricular aluno");
+        System.out.println("7 - Cadastrar avaliação");
+        System.out.println("8 - Registrar nota");
+        System.out.println("9 - Cadastrar mensalidade");
+        System.out.println("10 - Registrar pagamento");
+        System.out.println("11 - Cadastrar encontro");
+        System.out.println("12 - Listar dados");
+        System.out.println("0 - Sair");
+        System.out.println();
+        System.out.print("Escolha uma opção: ");
+    }
+
+    private static void cadastrarAluno(Scanner scanner, Sistema sistema) {
+        System.out.print("Nome: ");
+        String nome = scanner.nextLine();
+        System.out.print("CPF: ");
+        String cpf = scanner.nextLine();
+        System.out.print("E-mail: ");
+        String email = scanner.nextLine();
+
         try {
-            sistema.cadastrarCurso(new Curso("ING-BAS", "Inglês", NivelCurso.AVANCADO, 60, "Outro", "Outro"));
+            Aluno aluno = new Aluno(nome, cpf, email);
+            sistema.cadastrarAluno(aluno);
+            System.out.println("Aluno cadastrado com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
         }
+    }
 
-        // ---------------------------------------------------------------------------
-        // 2. PROFESSORES E QUALIFICAÇÕES (RF03, RN01, RN03)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 2. CADASTRO DE PROFESSORES (RF03, RN03)");
-        Professor profCarlos = new Professor(
-                "Carlos Eduardo",
-                "111.222.333-44",
-                "(41) 98888-1111",
-                "carlos.eduardo@escola.com",
-                LocalDate.of(2023, 2, 1),
-                "Letras Inglês / Cambridge CELTA"
-        );
-        profCarlos.adicionarQualificacao(new IdiomaProfissional("Inglês", NivelCurso.AVANCADO));
-        sistema.cadastrarProfessor(profCarlos);
-        System.out.println("Professor cadastrado: " + profCarlos);
+    private static void cadastrarProfessor(Scanner scanner, Sistema sistema) {
+        System.out.print("Nome: ");
+        String nome = scanner.nextLine();
+        System.out.print("CPF: ");
+        String cpf = scanner.nextLine();
+        System.out.print("E-mail: ");
+        String email = scanner.nextLine();
 
-        Professor profAna = new Professor(
-                "Ana Paula",
-                "555.666.777-88",
-                "(41) 99999-2222",
-                "ana.paula@escola.com",
-                LocalDate.of(2024, 1, 15),
-                "Licenciatura em Espanhol"
-        );
-        profAna.adicionarQualificacao(new IdiomaProfissional("Espanhol", NivelCurso.AVANCADO));
-        sistema.cadastrarProfessor(profAna);
-        System.out.println("Professora cadastrada: " + profAna);
-
-        // ---------------------------------------------------------------------------
-        // 3. ALUNOS E INTERESSES (RF04, RN01)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 3. CADASTRO DE ALUNOS (RF04)");
-        Aluno alunoLucas = new Aluno(
-                "Lucas Silva",
-                "123.456.789-00",
-                LocalDate.of(2002, 5, 20),
-                "Rua XV de Novembro, 100",
-                "(41) 97777-3333",
-                "lucas.silva@email.com"
-        );
-        alunoLucas.adicionarInteresse(new IdiomaInteresse("Inglês", NivelCurso.BASICO));
-        sistema.cadastrarAluno(alunoLucas);
-        System.out.println("Aluno 1 cadastrado: " + alunoLucas);
-
-        Aluno alunaMaria = new Aluno(
-                "Maria Fernandes",
-                "987.654.321-11",
-                LocalDate.of(2001, 8, 12),
-                "Av. Sete de Setembro, 500",
-                "(41) 96666-4444",
-                "maria.fernandes@email.com"
-        );
-        alunaMaria.adicionarInteresse(new IdiomaInteresse("Inglês", NivelCurso.BASICO));
-        sistema.cadastrarAluno(alunaMaria);
-        System.out.println("Aluna 2 cadastrada: " + alunaMaria);
-
-        // ---------------------------------------------------------------------------
-        // 4. TURMAS, HORÁRIOS E REGRAS DE HABILITAÇÃO DO PROFESSOR (RF05, RF06, RN03)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 4. CADASTRO DE TURMAS (RF05, RF06)");
-
-        // Teste de RN03: Tentar associar turma de Inglês à professora Ana (habilitada apenas em Espanhol)
-        System.out.println("[Teste RN03] Tentando criar turma de Inglês com professora habilitada apenas em Espanhol:");
         try {
-            Turma turmaInvalida = new Turma(
-                    "TURMA-ERR",
-                    cursoIngles,
-                    profAna,
-                    LocalDate.now().minusDays(10),
-                    LocalDate.now().plusDays(20),
-                    2,
-                    15
-            );
-            sistema.cadastrarTurma(turmaInvalida);
+            Professor professor = new Professor(nome, cpf, email);
+            sistema.cadastrarProfessor(professor);
+            System.out.println("Professor cadastrado com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void cadastrarCurso(Scanner scanner, Sistema sistema) {
+        System.out.print("Código: ");
+        String codigo = scanner.nextLine();
+        System.out.print("Nome: ");
+        String nome = scanner.nextLine();
+        System.out.print("Idioma: ");
+        String idioma = scanner.nextLine();
+
+        System.out.println();
+        System.out.println("1 - Básico");
+        System.out.println("2 - Intermediário");
+        System.out.println("3 - Avançado");
+        System.out.println();
+        System.out.print("Escolha o nível: ");
+        int escolha = lerInteiro(scanner);
+
+        NivelCurso nivel;
+        if (escolha == 1) {
+            nivel = NivelCurso.BASICO;
+        } else if (escolha == 2) {
+            nivel = NivelCurso.INTERMEDIARIO;
+        } else if (escolha == 3) {
+            nivel = NivelCurso.AVANCADO;
+        } else {
+            System.out.println("Nível inválido.");
+            return;
         }
 
-        // Criando turma válida com o professor Carlos
-        Turma turmaIngles = new Turma(
-                "TURMA-ING-01",
-                cursoIngles,
-                profCarlos,
-                LocalDate.now().minusDays(15),
-                LocalDate.now().plusDays(15),
-                2, // mínimo 2 alunos
-                5  // máximo 5 alunos
-        );
-        turmaIngles.adicionarHorario(new HorarioTurma(DayOfWeek.MONDAY, LocalTime.of(19, 0), LocalTime.of(20, 30), "Sala 101"));
-        turmaIngles.adicionarHorario(new HorarioTurma(DayOfWeek.WEDNESDAY, LocalTime.of(19, 0), LocalTime.of(20, 30), "Sala 101"));
-
-        // Adicionando encontros/aulas programadas
-        Encontro encontro1 = new Encontro(LocalDate.now().plusDays(1), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
-        Encontro encontro2 = new Encontro(LocalDate.now().plusDays(3), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
-        Encontro encontro3 = new Encontro(LocalDate.now().plusDays(8), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
-        Encontro encontro4 = new Encontro(LocalDate.now().plusDays(10), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
-        turmaIngles.adicionarEncontro(encontro1);
-        turmaIngles.adicionarEncontro(encontro2);
-        turmaIngles.adicionarEncontro(encontro3);
-        turmaIngles.adicionarEncontro(encontro4);
-
-        sistema.cadastrarTurma(turmaIngles);
-        System.out.println("Turma válida cadastrada: " + turmaIngles);
-
-        // ---------------------------------------------------------------------------
-        // 5. MATRÍCULAS E REGRAS DE LIMITE (RF07, RF08, RN04, RN05, RN06)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 5. MATRÍCULAS DE ALUNOS (RF07, RF08, RN04, RN05, RN06)");
-
-        // Matrícula do Lucas
-        Matricula dadosLucas = new Matricula(
-                "MAT-2026-001",
-                alunoLucas,
-                turmaIngles,
-                LocalDate.now(),
-                new BigDecimal("350.00"),
-                3, // 3 parcelas
-                new BigDecimal("50.00"), // desconto de 50 reais
-                "Boleto Bancário"
-        );
-        Matricula matLucas = sistema.matricular(alunoLucas, turmaIngles, dadosLucas);
-        System.out.println("Matrícula realizada com sucesso: " + matLucas);
-
-        // Teste de RF08/RN05: Tentar iniciar turma antes de atingir o mínimo de alunos
-        System.out.println("\n[Teste RF08/RN05] Tentando iniciar turma com apenas 1 aluno (mínimo = 2):");
         try {
-            sistema.iniciarTurma(turmaIngles.getCodigo());
+            Curso curso = new Curso(codigo, nome, idioma, nivel);
+            sistema.cadastrarCurso(curso);
+            System.out.println("Curso cadastrado com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void adicionarModulo(Scanner scanner, Sistema sistema) {
+        System.out.print("Código do curso: ");
+        String codigo = scanner.nextLine();
+        Curso curso = sistema.buscarCurso(codigo);
+
+        if (curso == null) {
+            System.out.println("Curso não encontrado.");
+            return;
         }
 
-        // Matrícula da Maria para atingir o mínimo
-        Matricula dadosMaria = new Matricula(
-                "MAT-2026-002",
-                alunaMaria,
-                turmaIngles,
-                LocalDate.now(),
-                new BigDecimal("350.00"),
-                3,
-                BigDecimal.ZERO,
-                "Cartão de Crédito"
-        );
-        Matricula matMaria = sistema.matricular(alunaMaria, turmaIngles, dadosMaria);
-        System.out.println("Segunda matrícula realizada: " + matMaria);
+        System.out.print("Número do módulo: ");
+        int numero = lerInteiro(scanner);
+        System.out.print("Nome do módulo: ");
+        String nome = scanner.nextLine();
+        System.out.print("Carga horária: ");
+        int cargaHoraria = lerInteiro(scanner);
 
-        // Agora a turma atingiu o mínimo de alunos
-        System.out.println("Turma atingiu o mínimo de alunos? " + sistema.turmaAtingiuMinimoAlunos(turmaIngles.getCodigo()));
-        sistema.iniciarTurma(turmaIngles.getCodigo());
-        System.out.println("Situação da turma após atingir o mínimo e iniciar: " + turmaIngles.getSituacao());
+        Modulo modulo = new Modulo(numero, nome, cargaHoraria);
+        curso.adicionarModulo(modulo);
+        System.out.println("Módulo adicionado com sucesso!");
+    }
 
-        // ---------------------------------------------------------------------------
-        // 6. FINANCEIRO: MENSALIDADES, PAGAMENTO E ATRASO (RF09, RF10, RF11, RN06, RN07)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 6. MENSALIDADES E PAGAMENTOS (RF09, RF10, RF11)");
-        List<Mensalidade> mensalidadesLucas = sistema.consultarMensalidadesPorMatricula(matLucas.getNumero());
-        System.out.println("Mensalidades geradas para o aluno Lucas:");
-        for (Mensalidade m : mensalidadesLucas) {
-            System.out.println("  - " + m);
+    private static void cadastrarTurma(Scanner scanner, Sistema sistema) {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine();
+        System.out.print("Código do curso: ");
+        String codigoCurso = scanner.nextLine();
+        System.out.print("CPF do professor: ");
+        String cpfProfessor = scanner.nextLine();
+        System.out.print("Quantidade máxima de alunos: ");
+        int quantidadeMaxima = lerInteiro(scanner);
+
+        Curso curso = sistema.buscarCurso(codigoCurso);
+        if (curso == null) {
+            System.out.println("Curso não encontrado.");
+            return;
         }
 
-        // Pagando a 1ª mensalidade em dia
-        Mensalidade mens1 = mensalidadesLucas.get(0);
-        Pagamento pag1 = new Pagamento(LocalDate.now(), mens1.getValorOriginal(), "PIX");
-        sistema.registrarPagamento(mens1, pag1);
-        System.out.println("\nPagamento realizado da mensalidade #1: " + mens1);
+        Professor professor = sistema.buscarProfessor(cpfProfessor);
+        if (professor == null) {
+            System.out.println("Professor não encontrado.");
+            return;
+        }
 
-        // Teste de RN06: Tentar pagar novamente uma mensalidade já quitada
-        System.out.println("[Teste RN06] Tentando pagar novamente mensalidade já paga:");
         try {
-            sistema.registrarPagamento(mens1, new Pagamento(LocalDate.now(), mens1.getValorOriginal(), "Dinheiro"));
+            Turma turma = new Turma(codigoTurma, curso, professor, quantidadeMaxima);
+            sistema.cadastrarTurma(turma);
+            System.out.println("Turma cadastrada com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void matricularAluno(Scanner scanner, Sistema sistema) {
+        System.out.print("CPF do aluno: ");
+        String cpfAluno = scanner.nextLine();
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine();
+        System.out.print("Valor da mensalidade: ");
+        double valor = lerDouble(scanner);
+
+        Aluno aluno = sistema.buscarAluno(cpfAluno);
+        if (aluno == null) {
+            System.out.println("Aluno não encontrado.");
+            return;
         }
 
-        // Simulação de mensalidade em atraso (RF11, RN07)
-        Mensalidade mens2 = mensalidadesLucas.get(1);
-        mens2.setVencimento(LocalDate.now().minusDays(15)); // Vencida há 15 dias
-        LocalDate hoje = LocalDate.now();
-        BigDecimal valorComEncargos = sistema.calcularTotalEmAtraso(mens2, hoje);
-        System.out.println("\n[RF11/RN07] Cálculo de multa e juros para mensalidade vencida há 15 dias:");
-        System.out.println("  Valor Original: R$ " + mens2.getValorOriginal());
-        System.out.println("  Valor Atualizado (com multa de 2% e juros diários): R$ " + valorComEncargos);
-
-        // ---------------------------------------------------------------------------
-        // 7. MATERIAIS DIDÁTICOS E VENDAS (RF12, RF13, RN11)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 7. MATERIAIS DIDÁTICOS E VENDAS (RF12, RF13, RN11)");
-        Material matIngles = new Material("MAT-ENG-01", "English File Starter 4th Ed.", "Oxford", "4ª", "Livro Didático", new BigDecimal("180.00"));
-        Material matDicionario = new Material("MAT-DIC-01", "Dicionário Oxford Pocket", "Oxford", "2ª", "Dicionário", new BigDecimal("75.00"));
-        sistema.cadastrarMaterial(matIngles);
-        sistema.cadastrarMaterial(matDicionario);
-
-        Venda vendaLucas = new Venda("VND-001", alunoLucas, LocalDate.now());
-        vendaLucas.adicionarItem(new ItemVenda(matIngles, 1, matIngles.getPreco()));
-        vendaLucas.adicionarItem(new ItemVenda(matDicionario, 1, matDicionario.getPreco()));
-        sistema.registrarVenda(vendaLucas);
-
-        System.out.println("Venda de materiais registrada separadamente: " + vendaLucas);
-        for (ItemVenda item : vendaLucas.getItens()) {
-            System.out.println("  - " + item);
+        Turma turma = sistema.buscarTurma(codigoTurma);
+        if (turma == null) {
+            System.out.println("Turma não encontrada.");
+            return;
         }
 
-        // ---------------------------------------------------------------------------
-        // 8. ACOMPANHAMENTO PEDAGÓGICO: AVALIAÇÕES E NOTAS (RF14, RF15, RF16, RN08)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 8. AVALIAÇÕES E NOTAS (RF14, RF15, RF16, RN08)");
-        Avaliacao provaEscrita = new Avaliacao("AV-01", TipoAvaliacao.PROVA_ESCRITA, LocalDate.now().plusDays(7), new BigDecimal("10.0"), new BigDecimal("0.6"), mod1);
-        Avaliacao provaOral = new Avaliacao("AV-02", TipoAvaliacao.PROVA_ORAL, LocalDate.now().plusDays(9), new BigDecimal("10.0"), new BigDecimal("0.4"), mod1);
-        sistema.cadastrarAvaliacao(provaEscrita);
-        sistema.cadastrarAvaliacao(provaOral);
-        mod1.adicionarAvaliacao(provaEscrita);
-        mod1.adicionarAvaliacao(provaOral);
-
-        // Teste de RN08: Lançar pontuação superior ao máximo da prova
-        System.out.println("[Teste RN08] Tentando registrar pontuação superior ao máximo (11.0 de max 10.0):");
         try {
-            sistema.registrarNota(matLucas, provaEscrita, new Nota(provaEscrita, new BigDecimal("11.0"), "Nota inválida"));
+            Matricula matricula = new Matricula(aluno, turma, valor);
+            sistema.cadastrarMatricula(matricula);
+            System.out.println("Matrícula realizada com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void cadastrarAvaliacao(Scanner scanner, Sistema sistema) {
+        System.out.print("Código do curso: ");
+        String codigoCurso = scanner.nextLine();
+        Curso curso = sistema.buscarCurso(codigoCurso);
+        if (curso == null) {
+            System.out.println("Curso não encontrado.");
+            return;
         }
 
-        // Lançando notas válidas para o Lucas
-        sistema.registrarNota(matLucas, provaEscrita, new Nota(provaEscrita, new BigDecimal("8.5"), "Bom vocabulário e gramática"));
-        sistema.registrarNota(matLucas, provaOral, new Nota(provaOral, new BigDecimal("9.0"), "Excelente pronúncia e fluência"));
+        System.out.print("Número do módulo: ");
+        int numeroModulo = lerInteiro(scanner);
+        Modulo modulo = curso.buscarModulo(numeroModulo);
+        if (modulo == null) {
+            System.out.println("Módulo não encontrado.");
+            return;
+        }
 
-        BigDecimal mediaLucas = sistema.calcularMediaFinal(matLucas, mod1);
-        System.out.println("Notas registradas para Lucas. Média ponderada calculada (RF16): " + mediaLucas);
+        System.out.print("Descrição da avaliação: ");
+        String descricao = scanner.nextLine();
+        System.out.print("Valor da avaliação: ");
+        double valor = lerDouble(scanner);
 
-        // ---------------------------------------------------------------------------
-        // 9. FREQUÊNCIA E AULAS PARTICULARES (RF17, RF18, RN09)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 9. FREQUÊNCIA E AULAS PARTICULARES (RF17, RF18, RN09)");
-        sistema.registrarFrequencia(matLucas, encontro1, true);
-        sistema.registrarFrequencia(matLucas, encontro2, true);
-        sistema.registrarFrequencia(matLucas, encontro3, true);
-        sistema.registrarFrequencia(matLucas, encontro4, false); // 1 falta em 4 aulas = 75% de presença
+        System.out.println();
+        System.out.println("1 - Prova");
+        System.out.println("2 - Trabalho");
+        System.out.println("3 - Exercício");
+        System.out.println();
+        System.out.print("Escolha o tipo: ");
+        int escolha = lerInteiro(scanner);
 
-        BigDecimal freqLucas = sistema.calcularFrequencia(matLucas);
-        System.out.println("Frequência de Lucas (3 presenças em 4 aulas): " + freqLucas.multiply(BigDecimal.valueOf(100)) + "%");
+        TipoAvaliacao tipo;
+        if (escolha == 1) {
+            tipo = TipoAvaliacao.PROVA;
+        } else if (escolha == 2) {
+            tipo = TipoAvaliacao.TRABALHO;
+        } else if (escolha == 3) {
+            tipo = TipoAvaliacao.EXERCICIO;
+        } else {
+            System.out.println("Tipo inválido.");
+            return;
+        }
 
-        // Agendamento de aula particular (RF18)
-        AulaParticular aulaPart = new AulaParticular(
-                "AP-001",
-                alunoLucas,
-                profCarlos,
-                LocalDate.now().plusDays(12),
-                LocalTime.of(14, 0),
-                LocalTime.of(15, 0),
-                "Reforço em Phrasal Verbs",
-                "Aluno demonstrou bom rendimento na aula individual."
-        );
-        sistema.agendarAulaParticular(aulaPart);
-        System.out.println("Aula particular agendada com sucesso: " + aulaPart);
-
-        // ---------------------------------------------------------------------------
-        // 10. CONCLUSÃO DE MÓDULO E CERTIFICADO (RF19, RN10)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 10. EMISSÃO DE CERTIFICADO (RF19, RN10)");
-        Certificado certLucas = sistema.concluirModulo(matLucas, mod1);
-        System.out.println("Certificado emitido com sucesso:");
-        System.out.println("  " + certLucas);
-
-        // Teste de reprovação de certificado por nota insuficiente
-        Aluno alunoReprovado = new Aluno("João Teste", "000.111.222-33", LocalDate.of(2000, 1, 1), "Rua A", "111", "joao@email.com");
-        sistema.cadastrarAluno(alunoReprovado);
-        Turma turmaIngles2 = new Turma("TURMA-ING-02", cursoIngles, profCarlos, LocalDate.now().minusDays(5), LocalDate.now().plusDays(20), 1, 10);
-        Encontro encontroReprovado = new Encontro(LocalDate.now().plusDays(1), LocalTime.of(19, 0), LocalTime.of(20, 30), mod1);
-        turmaIngles2.adicionarEncontro(encontroReprovado);
-        sistema.cadastrarTurma(turmaIngles2);
-        Matricula matReprovada = sistema.matricular(alunoReprovado, turmaIngles2, new Matricula("MAT-2026-003", alunoReprovado, turmaIngles2, LocalDate.now(), new BigDecimal("350.00"), 1, BigDecimal.ZERO, "Boleto"));
-        sistema.registrarNota(matReprovada, provaEscrita, new Nota(provaEscrita, new BigDecimal("4.0"), "Insuficiente"));
-        sistema.registrarNota(matReprovada, provaOral, new Nota(provaOral, new BigDecimal("5.0"), "Insuficiente"));
-        sistema.registrarFrequencia(matReprovada, encontroReprovado, true);
-
-        System.out.println("\n[Teste RN10] Tentando emitir certificado para aluno com média abaixo de 7.0:");
         try {
-            sistema.concluirModulo(matReprovada, mod1);
+            Avaliacao avaliacao = new Avaliacao(descricao, valor, modulo, tipo);
+            sistema.cadastrarAvaliacao(avaliacao);
+            System.out.println("Avaliação cadastrada com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void registrarNota(Scanner scanner, Sistema sistema) {
+        System.out.print("CPF do aluno: ");
+        String cpfAluno = scanner.nextLine();
+        Aluno aluno = sistema.buscarAluno(cpfAluno);
+        if (aluno == null) {
+            System.out.println("Aluno não encontrado.");
+            return;
         }
 
-        // ---------------------------------------------------------------------------
-        // 11. REMOÇÕES CONSISTENTES E PRESERVAÇÃO DE HISTÓRICO (RN12)
-        // ---------------------------------------------------------------------------
-        System.out.println("\n>>> 11. CONSISTÊNCIA DE REMOÇÃO / HISTÓRICO (RN12)");
-        System.out.println("[Teste RN12] Tentando remover professor Carlos que possui turmas ativas:");
+        System.out.print("Descrição da avaliação: ");
+        String descricao = scanner.nextLine();
+        Avaliacao avaliacao = sistema.buscarAvaliacao(descricao);
+        if (avaliacao == null) {
+            System.out.println("Avaliação não encontrada.");
+            return;
+        }
+
+        System.out.print("Nota: ");
+        double valor = lerDouble(scanner);
+        if (valor < 0 || valor > 10) {
+            System.out.println("Nota inválida. Digite um valor entre 0 e 10.");
+            return;
+        }
+
         try {
-            sistema.removerProfessor(profCarlos.getCpf());
+            Nota nota = new Nota(aluno, avaliacao, valor);
+            sistema.cadastrarNota(nota);
+            System.out.println("Nota registrada com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void cadastrarMensalidade(Scanner scanner, Sistema sistema) {
+        System.out.print("CPF do aluno da matrícula: ");
+        String cpfAluno = scanner.nextLine();
+        System.out.print("Código da turma da matrícula: ");
+        String codigoTurma = scanner.nextLine();
+
+        Matricula matricula = sistema.buscarMatricula(cpfAluno, codigoTurma);
+        if (matricula == null) {
+            System.out.println("Matrícula não encontrada.");
+            return;
         }
 
-        System.out.println("[Teste RN12] Tentando remover curso que possui turmas vinculadas:");
+        System.out.print("Número da mensalidade: ");
+        int numero = lerInteiro(scanner);
+        System.out.print("Valor: ");
+        double valor = lerDouble(scanner);
+
         try {
-            sistema.removerCurso(cursoIngles.getCodigo());
+            Mensalidade mensalidade = new Mensalidade(numero, valor, matricula);
+            sistema.cadastrarMensalidade(mensalidade);
+            System.out.println("Mensalidade cadastrada com sucesso!");
         } catch (RegraNegocioException e) {
-            System.out.println("  Sucesso na validação (rejeitado): " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void registrarPagamento(Scanner scanner, Sistema sistema) {
+        System.out.print("Número da mensalidade: ");
+        int numero = lerInteiro(scanner);
+        Mensalidade mensalidade = sistema.buscarMensalidade(numero);
+        if (mensalidade == null) {
+            System.out.println("Mensalidade não encontrada.");
+            return;
         }
 
-        System.out.println("\n===============================================================================");
-        System.out.println("  TODOS OS REQUISITOS (RF01–RF19) E REGRAS (RN01–RN12) TESTADOS COM SUCESSO!");
-        System.out.println("===============================================================================");
+        System.out.print("Valor pago: ");
+        double valor = lerDouble(scanner);
+
+        System.out.println();
+        System.out.println("1 - PIX");
+        System.out.println("2 - CARTÃO");
+        System.out.println("3 - DINHEIRO");
+        System.out.println();
+        System.out.print("Escolha a forma de pagamento: ");
+        int escolha = lerInteiro(scanner);
+
+        String forma;
+        if (escolha == 1) {
+            forma = "PIX";
+        } else if (escolha == 2) {
+            forma = "CARTAO";
+        } else if (escolha == 3) {
+            forma = "DINHEIRO";
+        } else {
+            System.out.println("Forma de pagamento inválida.");
+            return;
+        }
+
+        try {
+            Pagamento pagamento = new Pagamento(valor, forma);
+            sistema.cadastrarPagamento(mensalidade, pagamento);
+            System.out.println("Pagamento registrado com sucesso!");
+            System.out.println("Mensalidade marcada como paga.");
+        } catch (RegraNegocioException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void cadastrarEncontro(Scanner scanner, Sistema sistema) {
+        System.out.print("Código do curso: ");
+        String codigoCurso = scanner.nextLine();
+        Curso curso = sistema.buscarCurso(codigoCurso);
+        if (curso == null) {
+            System.out.println("Curso não encontrado.");
+            return;
+        }
+
+        System.out.print("Número do módulo: ");
+        int numeroModulo = lerInteiro(scanner);
+        Modulo modulo = curso.buscarModulo(numeroModulo);
+        if (modulo == null) {
+            System.out.println("Módulo não encontrado.");
+            return;
+        }
+
+        System.out.print("Número do encontro: ");
+        int numero = lerInteiro(scanner);
+        System.out.print("Data: ");
+        String data = scanner.nextLine();
+
+        try {
+            Encontro encontro = new Encontro(numero, modulo, data);
+            sistema.cadastrarEncontro(encontro);
+            System.out.println("Encontro cadastrado com sucesso!");
+        } catch (RegraNegocioException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void menuListar(Scanner scanner, Sistema sistema) {
+        int opcao = -1;
+
+        while (opcao != 0) {
+            System.out.println();
+            System.out.println("===== LISTAR DADOS =====");
+            System.out.println();
+            System.out.println("1 - Listar alunos");
+            System.out.println("2 - Listar professores");
+            System.out.println("3 - Listar cursos");
+            System.out.println("4 - Listar turmas");
+            System.out.println("5 - Listar matrículas");
+            System.out.println("6 - Listar avaliações");
+            System.out.println("7 - Listar notas");
+            System.out.println("8 - Listar mensalidades");
+            System.out.println("9 - Listar pagamentos");
+            System.out.println("10 - Listar encontros");
+            System.out.println("0 - Voltar");
+            System.out.println();
+            System.out.print("Escolha uma opção: ");
+            opcao = lerInteiro(scanner);
+
+            switch (opcao) {
+                case 1:
+                    listarAlunos(sistema);
+                    break;
+                case 2:
+                    listarProfessores(sistema);
+                    break;
+                case 3:
+                    listarCursos(sistema);
+                    break;
+                case 4:
+                    listarTurmas(sistema);
+                    break;
+                case 5:
+                    listarMatriculas(sistema);
+                    break;
+                case 6:
+                    listarAvaliacoes(sistema);
+                    break;
+                case 7:
+                    listarNotas(sistema);
+                    break;
+                case 8:
+                    listarMensalidades(sistema);
+                    break;
+                case 9:
+                    listarPagamentos(sistema);
+                    break;
+                case 10:
+                    listarEncontros(sistema);
+                    break;
+                case 0:
+                    break;
+                default:
+                    System.out.println("Opção inválida.");
+                    break;
+            }
+        }
+    }
+
+    private static void listarAlunos(Sistema sistema) {
+        if (sistema.getAlunos().isEmpty()) {
+            System.out.println("Nenhum aluno cadastrado.");
+            return;
+        }
+        for (int i = 0; i < sistema.getAlunos().size(); i++) {
+            System.out.println(sistema.getAlunos().get(i));
+        }
+    }
+
+    private static void listarProfessores(Sistema sistema) {
+        if (sistema.getProfessores().isEmpty()) {
+            System.out.println("Nenhum professor cadastrado.");
+            return;
+        }
+        for (int i = 0; i < sistema.getProfessores().size(); i++) {
+            System.out.println(sistema.getProfessores().get(i));
+        }
+    }
+
+    private static void listarCursos(Sistema sistema) {
+        if (sistema.getCursos().isEmpty()) {
+            System.out.println("Nenhum curso cadastrado.");
+            return;
+        }
+        for (int i = 0; i < sistema.getCursos().size(); i++) {
+            Curso curso = sistema.getCursos().get(i);
+            System.out.println(curso);
+            for (int j = 0; j < curso.getModulos().size(); j++) {
+                System.out.println("  - " + curso.getModulos().get(j));
+            }
+        }
+    }
+
+    private static void listarTurmas(Sistema sistema) {
+        if (sistema.getTurmas().isEmpty()) {
+            System.out.println("Nenhuma turma cadastrada.");
+            return;
+        }
+        for (int i = 0; i < sistema.getTurmas().size(); i++) {
+            System.out.println(sistema.getTurmas().get(i));
+        }
+    }
+
+    private static void listarMatriculas(Sistema sistema) {
+        if (sistema.getMatriculas().isEmpty()) {
+            System.out.println("Nenhuma matrícula cadastrada.");
+            return;
+        }
+        for (int i = 0; i < sistema.getMatriculas().size(); i++) {
+            System.out.println(sistema.getMatriculas().get(i));
+        }
+    }
+
+    private static void listarAvaliacoes(Sistema sistema) {
+        if (sistema.getAvaliacoes().isEmpty()) {
+            System.out.println("Nenhuma avaliação cadastrada.");
+            return;
+        }
+        for (int i = 0; i < sistema.getAvaliacoes().size(); i++) {
+            System.out.println(sistema.getAvaliacoes().get(i));
+        }
+    }
+
+    private static void listarNotas(Sistema sistema) {
+        if (sistema.getNotas().isEmpty()) {
+            System.out.println("Nenhuma nota cadastrada.");
+            return;
+        }
+        for (int i = 0; i < sistema.getNotas().size(); i++) {
+            System.out.println(sistema.getNotas().get(i));
+        }
+    }
+
+    private static void listarMensalidades(Sistema sistema) {
+        if (sistema.getMensalidades().isEmpty()) {
+            System.out.println("Nenhuma mensalidade cadastrada.");
+            return;
+        }
+        for (int i = 0; i < sistema.getMensalidades().size(); i++) {
+            System.out.println(sistema.getMensalidades().get(i));
+        }
+    }
+
+    private static void listarPagamentos(Sistema sistema) {
+        if (sistema.getPagamentos().isEmpty()) {
+            System.out.println("Nenhum pagamento cadastrado.");
+            return;
+        }
+        for (int i = 0; i < sistema.getPagamentos().size(); i++) {
+            System.out.println(sistema.getPagamentos().get(i));
+        }
+    }
+
+    private static void listarEncontros(Sistema sistema) {
+        if (sistema.getEncontros().isEmpty()) {
+            System.out.println("Nenhum encontro cadastrado.");
+            return;
+        }
+        for (int i = 0; i < sistema.getEncontros().size(); i++) {
+            System.out.println(sistema.getEncontros().get(i));
+        }
+    }
+
+    private static int lerInteiro(Scanner scanner) {
+        String texto = scanner.nextLine();
+        try {
+            return Integer.parseInt(texto);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private static double lerDouble(Scanner scanner) {
+        String texto = scanner.nextLine();
+        try {
+            return Double.parseDouble(texto.replace(",", "."));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }

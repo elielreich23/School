@@ -1,71 +1,34 @@
 package dados;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Objects;
+import dados.enums.TipoAvaliacao;
 
 public class Avaliacao {
-    private String identificador;
-    private TipoAvaliacao tipo;
-    private LocalDate dataAplicacao;
-    private BigDecimal valorMaximo;
-    private BigDecimal peso;
+    private String descricao;
+    private double valor;
     private Modulo modulo;
+    private TipoAvaliacao tipo;
 
-    public Avaliacao() {
-    }
-
-    public Avaliacao(String identificador, TipoAvaliacao tipo, LocalDate dataAplicacao, BigDecimal valorMaximo, BigDecimal peso) {
-        this.identificador = identificador;
-        this.tipo = tipo;
-        this.dataAplicacao = dataAplicacao;
-        this.valorMaximo = valorMaximo;
-        this.peso = peso;
-    }
-
-    public Avaliacao(String identificador, TipoAvaliacao tipo, LocalDate dataAplicacao, BigDecimal valorMaximo, BigDecimal peso, Modulo modulo) {
-        this(identificador, tipo, dataAplicacao, valorMaximo, peso);
+    public Avaliacao(String descricao, double valor, Modulo modulo, TipoAvaliacao tipo) {
+        this.descricao = descricao;
+        this.valor = valor;
         this.modulo = modulo;
-    }
-
-    public String getIdentificador() {
-        return identificador;
-    }
-
-    public void setIdentificador(String identificador) {
-        this.identificador = identificador;
-    }
-
-    public TipoAvaliacao getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(TipoAvaliacao tipo) {
         this.tipo = tipo;
     }
 
-    public LocalDate getDataAplicacao() {
-        return dataAplicacao;
+    public String getDescricao() {
+        return descricao;
     }
 
-    public void setDataAplicacao(LocalDate dataAplicacao) {
-        this.dataAplicacao = dataAplicacao;
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 
-    public BigDecimal getValorMaximo() {
-        return valorMaximo;
+    public double getValor() {
+        return valor;
     }
 
-    public void setValorMaximo(BigDecimal valorMaximo) {
-        this.valorMaximo = valorMaximo;
-    }
-
-    public BigDecimal getPeso() {
-        return peso;
-    }
-
-    public void setPeso(BigDecimal peso) {
-        this.peso = peso;
+    public void setValor(double valor) {
+        this.valor = valor;
     }
 
     public Modulo getModulo() {
@@ -76,20 +39,17 @@ public class Avaliacao {
         this.modulo = modulo;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Avaliacao avaliacao)) return false;
-        return Objects.equals(identificador, avaliacao.identificador);
+    public TipoAvaliacao getTipo() {
+        return tipo;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(identificador);
+    public void setTipo(TipoAvaliacao tipo) {
+        this.tipo = tipo;
     }
 
     @Override
     public String toString() {
-        return "Avaliacao [" + identificador + "] " + tipo + " (Data: " + dataAplicacao + ", Max: " + valorMaximo + ", Peso: " + peso + ")";
+        String nomeModulo = modulo != null ? modulo.getNome() : "sem módulo";
+        return tipo + ": " + descricao + " | Valor: " + valor + " | Módulo: " + nomeModulo;
     }
 }

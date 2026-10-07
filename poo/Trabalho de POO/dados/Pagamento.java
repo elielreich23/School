@@ -1,36 +1,20 @@
 package dados;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 public class Pagamento {
-    private LocalDate data;
-    private BigDecimal valorPago;
+    private double valor;
     private String formaPagamento;
 
-    public Pagamento() {
-    }
-
-    public Pagamento(LocalDate data, BigDecimal valorPago, String formaPagamento) {
-        this.data = data;
-        this.valorPago = valorPago;
+    public Pagamento(double valor, String formaPagamento) {
+        this.valor = valor;
         this.formaPagamento = formaPagamento;
     }
 
-    public LocalDate getData() {
-        return data;
+    public double getValor() {
+        return valor;
     }
 
-    public void setData(LocalDate data) {
-        this.data = data;
-    }
-
-    public BigDecimal getValorPago() {
-        return valorPago;
-    }
-
-    public void setValorPago(BigDecimal valorPago) {
-        this.valorPago = valorPago;
+    public void setValor(double valor) {
+        this.valor = valor;
     }
 
     public String getFormaPagamento() {
@@ -43,6 +27,6 @@ public class Pagamento {
 
     @Override
     public String toString() {
-        return "Pagamento [data=" + data + ", valor=" + valorPago + ", forma=" + formaPagamento + "]";
+        return "Pagamento de R$ " + valor + " via " + formaPagamento;
     }
 }

@@ -1,8 +1,7 @@
-package dados;
+package dados.enums;
 
 public enum TipoAvaliacao {
-    PROVA_ESCRITA,
-    PROVA_ORAL,
+    PROVA,
     TRABALHO,
     EXERCICIO
 }

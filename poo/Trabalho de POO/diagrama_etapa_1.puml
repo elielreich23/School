@@ -1,10 +1,8 @@
 @startuml
-title Sistema de Gestão de Escola de Idiomas — Etapa I
-left to right direction
-skinparam packageStyle rectangle
+title Escola de Idiomas — Etapa I
 skinparam classAttributeIconSize 0
 
-package "dados" {
+package "dados.enums" {
   enum NivelCurso {
     BASICO
     INTERMEDIARIO
@@ -15,275 +13,162 @@ package "dados" {
     ABERTA
     EM_ANDAMENTO
     CONCLUIDA
-    CANCELADA
-  }
-
-  enum SituacaoMensalidade {
-    PENDENTE
-    PAGA
-    VENCIDA
-    CANCELADA
   }
 
   enum TipoAvaliacao {
-    PROVA_ESCRITA
-    PROVA_ORAL
+    PROVA
     TRABALHO
     EXERCICIO
+  }
+}
+
+package "dados" {
+  class Aluno {
+    - nome: String
+    - cpf: String
+    - email: String
+  }
+
+  class Professor {
+    - nome: String
+    - cpf: String
+    - email: String
   }
 
   class Curso {
     - codigo: String
+    - nome: String
     - idioma: String
     - nivel: NivelCurso
-    - cargaHorariaTotal: int
-    - descricaoConteudo: String
-    - materiaisNecessarios: String
+    - modulos: List<Modulo>
+    + adicionarModulo(modulo: Modulo): void
+    + buscarModulo(numero: int): Modulo
   }
 
   class Modulo {
     - numero: int
     - nome: String
     - cargaHoraria: int
-    - horarioAprendizagem: String
-  }
-
-  class Professor {
-    - nome: String
-    - cpf: String
-    - telefone: String
-    - email: String
-    - dataContratacao: LocalDate
-    - formacaoAcademica: String
-  }
-
-  class IdiomaProfissional {
-    - idioma: String
-    - nivelProficiencia: NivelCurso
-  }
-
-  class Aluno {
-    - nome: String
-    - cpf: String
-    - dataNascimento: LocalDate
-    - endereco: String
-    - telefone: String
-    - email: String
-  }
-
-  class IdiomaInteresse {
-    - idioma: String
-    - nivelConhecimento: NivelCurso
   }
 
   class Turma {
     - codigo: String
-    - inicioMatricula: LocalDate
-    - fimMatricula: LocalDate
-    - minimoAlunos: int
-    - maximoAlunos: int
+    - curso: Curso
+    - professor: Professor
+    - quantidadeMaximaAlunos: int
     - situacao: SituacaoTurma
-  }
-
-  class HorarioTurma {
-    - diaSemana: DayOfWeek
-    - horarioInicio: LocalTime
-    - horarioTermino: LocalTime
-    - sala: String
+    + abrir(): void
+    + encerrar(): void
   }
 
   class Matricula {
-    - numero: String
-    - dataMatricula: LocalDate
-    - valorMensalidade: BigDecimal
-    - quantidadeParcelas: int
-    - desconto: BigDecimal
-    - formaPagamento: String
+    - aluno: Aluno
+    - turma: Turma
+    - mensalidade: double
     - ativa: boolean
+  }
+
+  class Avaliacao {
+    - descricao: String
+    - valor: double
+    - modulo: Modulo
+    - tipo: TipoAvaliacao
+  }
+
+  class Nota {
+    - aluno: Aluno
+    - avaliacao: Avaliacao
+    - nota: double
   }
 
   class Mensalidade {
     - numero: int
-    - vencimento: LocalDate
-    - valorOriginal: BigDecimal
-    - valorAtualizado: BigDecimal
-    - dataPagamento: LocalDate
-    - situacao: SituacaoMensalidade
+    - valor: double
+    - paga: boolean
   }
 
   class Pagamento {
-    - data: LocalDate
-    - valorPago: BigDecimal
+    - valor: double
     - formaPagamento: String
   }
 
-  class Avaliacao {
-    - identificador: String
-    - tipo: TipoAvaliacao
-    - dataAplicacao: LocalDate
-    - valorMaximo: BigDecimal
-    - peso: BigDecimal
-  }
-
-  class Nota {
-    - pontuacao: BigDecimal
-    - observacoes: String
-  }
-
-  class RegistroFrequencia {
-    - dataAula: LocalDate
-    - presente: boolean
-  }
-
-  class AulaParticular {
-    - identificador: String
-    - data: LocalDate
-    - horarioInicio: LocalTime
-    - horarioTermino: LocalTime
-    - conteudoMinistrado: String
-    - observacoes: String
-  }
-
-  class Certificado {
-    - numero: String
-    - dataEmissao: LocalDate
-    - cargaHoraria: int
-    - notaFinal: BigDecimal
-  }
-
-  class Material {
-    - codigo: String
-    - titulo: String
-    - editora: String
-    - edicao: String
-    - tipo: String
-    - preco: BigDecimal
-  }
-
-  class Venda {
-    - numero: String
-    - data: LocalDate
-  }
-
-  class ItemVenda {
-    - quantidade: int
-    - precoUnitario: BigDecimal
-  }
-
   class Encontro {
-    - data: LocalDate
-    - horarioInicio: LocalTime
-    - horarioTermino: LocalTime
+    - numero: int
     - modulo: Modulo
+    - data: String
   }
 
-  Curso "1" *-- "0..*" Modulo : organiza
-  Modulo "0..*" -- "0..*" Modulo : pre-requisitos
-  Professor "1" *-- "0..*" IdiomaProfissional : qualificacoes
-  Aluno "1" *-- "0..*" IdiomaInteresse : interesses
-  Curso "1" -- "0..*" Turma : oferta
-  Professor "1" -- "0..*" Turma : responsavel
-  Turma "1" *-- "0..*" HorarioTurma : horarios
-  Turma "1" *-- "0..*" Encontro : agenda
-  Modulo "1" -- "0..*" Encontro : aulas do modulo
-  Aluno "1" -- "0..*" Matricula
-  Turma "1" -- "0..*" Matricula
-  Matricula "1" *-- "1..*" Mensalidade
+  Curso "1" *-- "*" Modulo
+  Curso "1" -- "*" Turma
+  Professor "1" -- "*" Turma
+  Aluno "1" -- "*" Matricula
+  Turma "1" -- "*" Matricula
+  Modulo "1" -- "*" Avaliacao
+  Aluno "1" -- "*" Nota
+  Avaliacao "1" -- "*" Nota
+  Matricula "1" -- "*" Mensalidade
   Mensalidade "1" -- "0..1" Pagamento
-  Modulo "1" -- "0..*" Avaliacao
-  Avaliacao "1" -- "0..*" Nota
-  Matricula "1" -- "0..*" Nota : aluno avaliado
-  Matricula "1" -- "0..*" RegistroFrequencia
-  Encontro "1" -- "0..*" RegistroFrequencia
-  Aluno "1" -- "0..*" AulaParticular
-  Professor "1" -- "0..*" AulaParticular
-  Aluno "1" -- "0..*" Certificado
-  Curso "1" -- "0..*" Certificado
-  Modulo "1" -- "0..*" Certificado
-  Venda "1" *-- "1..*" ItemVenda
-  Aluno "1" -- "0..*" Venda
-  Material "1" -- "0..*" ItemVenda
+  Modulo "1" -- "*" Encontro
+  Curso --> NivelCurso
+  Turma --> SituacaoTurma
+  Avaliacao --> TipoAvaliacao
 }
 
 package "negocio" {
   class Sistema {
-    - cursos: List<Curso>
-    - professores: List<Professor>
     - alunos: List<Aluno>
+    - professores: List<Professor>
+    - cursos: List<Curso>
     - turmas: List<Turma>
     - matriculas: List<Matricula>
-    - mensalidades: List<Mensalidade>
-    - pagamentos: List<Pagamento>
     - avaliacoes: List<Avaliacao>
     - notas: List<Nota>
-    - registrosFrequencia: List<RegistroFrequencia>
-    - aulasParticulares: List<AulaParticular>
-    - certificados: List<Certificado>
-    - materiais: List<Material>
-    - vendas: List<Venda>
-    - itensVenda: List<ItemVenda>
-    - taxaMulta: BigDecimal
-    - taxaJurosMensal: BigDecimal
-    - notaMinima: BigDecimal
-    - frequenciaMinima: BigDecimal
-    + cadastrarCurso(curso: Curso): void
-    + consultarCurso(codigo: String): Curso
-    + atualizarCurso(curso: Curso): void
-    + removerCurso(codigo: String): void
-    + cadastrarModulo(codigoCurso: String, modulo: Modulo): void
-    + consultarModulosCurso(codigoCurso: String): List<Modulo>
-    + cadastrarProfessor(professor: Professor): void
-    + consultarProfessor(cpf: String): Professor
-    + atualizarProfessor(professor: Professor): void
-    + removerProfessor(cpf: String): void
+    - mensalidades: List<Mensalidade>
+    - pagamentos: List<Pagamento>
+    - encontros: List<Encontro>
     + cadastrarAluno(aluno: Aluno): void
-    + consultarAluno(cpf: String): Aluno
-    + atualizarAluno(aluno: Aluno): void
-    + removerAluno(cpf: String): void
+    + cadastrarProfessor(professor: Professor): void
+    + cadastrarCurso(curso: Curso): void
     + cadastrarTurma(turma: Turma): void
-    + matricular(aluno: Aluno, turma: Turma, dados: Matricula): Matricula
-    + cancelarMatricula(numero: String): void
-    + gerarMensalidades(matricula: Matricula): void
-    + registrarPagamento(mensalidade: Mensalidade, pagamento: Pagamento): void
-    + calcularTotalEmAtraso(mensalidade: Mensalidade, hoje: LocalDate): BigDecimal
+    + cadastrarMatricula(matricula: Matricula): void
     + cadastrarAvaliacao(avaliacao: Avaliacao): void
-    + registrarNota(matricula: Matricula, avaliacao: Avaliacao, nota: Nota): void
-    + calcularMediaFinal(matricula: Matricula, modulo: Modulo): BigDecimal
-    + registrarFrequencia(matricula: Matricula, encontro: Encontro, presente: boolean): void
-    + calcularFrequencia(matricula: Matricula): BigDecimal
-    + calcularFrequencia(matricula: Matricula, modulo: Modulo): BigDecimal
-    + agendarAulaParticular(aula: AulaParticular): void
-    + concluirModulo(matricula: Matricula, modulo: Modulo): Certificado
-    + cadastrarMaterial(material: Material): void
-    + registrarVenda(venda: Venda): void
+    + cadastrarNota(nota: Nota): void
+    + cadastrarMensalidade(mensalidade: Mensalidade): void
+    + cadastrarPagamento(mensalidade: Mensalidade, pagamento: Pagamento): void
+    + cadastrarEncontro(encontro: Encontro): void
+    + buscarAluno(cpf: String): Aluno
+    + buscarProfessor(cpf: String): Professor
+    + buscarCurso(codigo: String): Curso
+    + buscarTurma(codigo: String): Turma
+    + buscarMatricula(cpfAluno: String, codigoTurma: String): Matricula
+    + buscarAvaliacao(descricao: String): Avaliacao
+    + buscarMensalidade(numero: int): Mensalidade
   }
 
   class Programa {
     + main(args: String[]): void
   }
 
-  Sistema "1" o-- "0..*" Curso : gerencia
-  Sistema "1" o-- "0..*" Professor : gerencia
-  Sistema "1" o-- "0..*" Aluno : gerencia
-  Sistema "1" o-- "0..*" Turma : gerencia
-  Sistema "1" o-- "0..*" Matricula : gerencia
-  Sistema "1" o-- "0..*" Mensalidade : gerencia
-  Sistema "1" o-- "0..*" Pagamento : gerencia
-  Sistema "1" o-- "0..*" Avaliacao : gerencia
-  Sistema "1" o-- "0..*" Nota : gerencia
-  Sistema "1" o-- "0..*" RegistroFrequencia : gerencia
-  Sistema "1" o-- "0..*" AulaParticular : gerencia
-  Sistema "1" o-- "0..*" Certificado : gerencia
-  Sistema "1" o-- "0..*" Material : gerencia
-  Sistema "1" o-- "0..*" Venda : gerencia
-  Sistema "1" o-- "0..*" ItemVenda : gerencia
-  Programa ..> Sistema : testa
+  class RegraNegocioException {
+  }
+
+  Sistema "1" o-- "*" Aluno
+  Sistema "1" o-- "*" Professor
+  Sistema "1" o-- "*" Curso
+  Sistema "1" o-- "*" Turma
+  Sistema "1" o-- "*" Matricula
+  Sistema "1" o-- "*" Avaliacao
+  Sistema "1" o-- "*" Nota
+  Sistema "1" o-- "*" Mensalidade
+  Sistema "1" o-- "*" Pagamento
+  Sistema "1" o-- "*" Encontro
+  Programa ..> Sistema : menu no terminal
 }
 
-note bottom of Sistema
-  As listas são mantidas em memória nesta etapa.
-  Taxas e critérios de aprovação são configuráveis;
-  o enunciado não fornece valores ou fórmulas.
+note bottom of Programa
+  Programa interativo com Scanner.
+  O sistema começa vazio.
+  O usuário cadastra e relaciona os objetos pelo menu.
 end note
 
 @enduml

@@ -1,4 +1,4 @@
-package dados;
+package dados.enums;
 
 public enum NivelCurso {
     BASICO,

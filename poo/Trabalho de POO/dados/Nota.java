@@ -1,19 +1,27 @@
 package dados;
 
-import java.math.BigDecimal;
+import negocio.RegraNegocioException;
 
 public class Nota {
+    private Aluno aluno;
     private Avaliacao avaliacao;
-    private BigDecimal pontuacao;
-    private String observacoes;
+    private double nota;
 
-    public Nota() {
+    public Nota(Aluno aluno, Avaliacao avaliacao, double nota) {
+        if (nota < 0 || nota > 10) {
+            throw new RegraNegocioException("A nota deve estar entre 0 e 10.");
+        }
+        this.aluno = aluno;
+        this.avaliacao = avaliacao;
+        this.nota = nota;
     }
 
-    public Nota(Avaliacao avaliacao, BigDecimal pontuacao, String observacoes) {
-        this.avaliacao = avaliacao;
-        this.pontuacao = pontuacao;
-        this.observacoes = observacoes;
+    public Aluno getAluno() {
+        return aluno;
+    }
+
+    public void setAluno(Aluno aluno) {
+        this.aluno = aluno;
     }
 
     public Avaliacao getAvaliacao() {
@@ -24,25 +32,21 @@ public class Nota {
         this.avaliacao = avaliacao;
     }
 
-    public BigDecimal getPontuacao() {
-        return pontuacao;
+    public double getNota() {
+        return nota;
     }
 
-    public void setPontuacao(BigDecimal pontuacao) {
-        this.pontuacao = pontuacao;
-    }
-
-    public String getObservacoes() {
-        return observacoes;
-    }
-
-    public void setObservacoes(String observacoes) {
-        this.observacoes = observacoes;
+    public void setNota(double nota) {
+        if (nota < 0 || nota > 10) {
+            throw new RegraNegocioException("A nota deve estar entre 0 e 10.");
+        }
+        this.nota = nota;
     }
 
     @Override
     public String toString() {
-        return "Nota: " + pontuacao + " (Avaliação: " + (avaliacao != null ? avaliacao.getIdentificador() : "N/A") +
-                (observacoes != null && !observacoes.isBlank() ? " - Obs: " + observacoes : "") + ")";
+        String nomeAluno = aluno != null ? aluno.getNome() : "sem aluno";
+        String descAvaliacao = avaliacao != null ? avaliacao.getDescricao() : "sem avaliação";
+        return "Nota de " + nomeAluno + " em " + descAvaliacao + ": " + nota;
     }
 }
