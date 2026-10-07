@@ -1,1 +1,14 @@
 *.class
+# Imagens
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+
+# Arquivos Markdown
+*.md
+
+# Workspace
+workspace/
