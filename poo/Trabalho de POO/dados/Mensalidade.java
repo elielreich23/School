@@ -1,22 +1,32 @@
 package dados;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 public class Mensalidade {
     private int numero;
-    private double valor;
-    private boolean paga;
-    private Matricula matricula;
+    private LocalDate vencimento;
+    private BigDecimal valorOriginal;
+    private BigDecimal valorAtualizado;
+    private LocalDate dataPagamento;
+    private SituacaoMensalidade situacao = SituacaoMensalidade.PENDENTE;
     private Pagamento pagamento;
+    private Matricula matricula;
 
-    public Mensalidade(int numero, double valor, Matricula matricula) {
-        this.numero = numero;
-        this.valor = valor;
-        this.paga = false;
-        this.matricula = matricula;
+    public Mensalidade() {
     }
 
-    public void registrarPagamento(Pagamento pagamento) {
-        this.pagamento = pagamento;
-        this.paga = true;
+    public Mensalidade(int numero, LocalDate vencimento, BigDecimal valorOriginal) {
+        this.numero = numero;
+        this.vencimento = vencimento;
+        this.valorOriginal = valorOriginal;
+        this.valorAtualizado = valorOriginal;
+        this.situacao = SituacaoMensalidade.PENDENTE;
+    }
+
+    public Mensalidade(int numero, LocalDate vencimento, BigDecimal valorOriginal, Matricula matricula) {
+        this(numero, vencimento, valorOriginal);
+        this.matricula = matricula;
     }
 
     public int getNumero() {
@@ -27,28 +37,44 @@ public class Mensalidade {
         this.numero = numero;
     }
 
-    public double getValor() {
-        return valor;
+    public LocalDate getVencimento() {
+        return vencimento;
     }
 
-    public void setValor(double valor) {
-        this.valor = valor;
+    public void setVencimento(LocalDate vencimento) {
+        this.vencimento = vencimento;
     }
 
-    public boolean isPaga() {
-        return paga;
+    public BigDecimal getValorOriginal() {
+        return valorOriginal;
     }
 
-    public void setPaga(boolean paga) {
-        this.paga = paga;
+    public void setValorOriginal(BigDecimal valorOriginal) {
+        this.valorOriginal = valorOriginal;
     }
 
-    public Matricula getMatricula() {
-        return matricula;
+    public BigDecimal getValorAtualizado() {
+        return valorAtualizado;
     }
 
-    public void setMatricula(Matricula matricula) {
-        this.matricula = matricula;
+    public void setValorAtualizado(BigDecimal valorAtualizado) {
+        this.valorAtualizado = valorAtualizado;
+    }
+
+    public LocalDate getDataPagamento() {
+        return dataPagamento;
+    }
+
+    public void setDataPagamento(LocalDate dataPagamento) {
+        this.dataPagamento = dataPagamento;
+    }
+
+    public SituacaoMensalidade getSituacao() {
+        return situacao;
+    }
+
+    public void setSituacao(SituacaoMensalidade situacao) {
+        this.situacao = situacao;
     }
 
     public Pagamento getPagamento() {
@@ -59,9 +85,23 @@ public class Mensalidade {
         this.pagamento = pagamento;
     }
 
+    public Matricula getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(Matricula matricula) {
+        this.matricula = matricula;
+    }
+
+    public boolean isVencida(LocalDate dataReferencia) {
+        if (situacao == SituacaoMensalidade.PAGA || situacao == SituacaoMensalidade.CANCELADA) return false;
+        return vencimento != null && dataReferencia != null && dataReferencia.isAfter(vencimento);
+    }
+
     @Override
     public String toString() {
-        String status = paga ? "paga" : "pendente";
-        return "Mensalidade " + numero + " | R$ " + valor + " | " + status;
+        return "Mensalidade #" + numero + " [Venc: " + vencimento + ", Orig: R$ " + valorOriginal +
+                ", Atualiz: R$ " + valorAtualizado + ", Situação: " + situacao +
+                (dataPagamento != null ? ", Paga em: " + dataPagamento : "") + "]";
     }
 }

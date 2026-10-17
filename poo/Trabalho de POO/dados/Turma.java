@@ -1,28 +1,34 @@
 package dados;
 
-import dados.enums.SituacaoTurma;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class Turma {
     private String codigo;
     private Curso curso;
     private Professor professor;
-    private int quantidadeMaximaAlunos;
-    private SituacaoTurma situacao;
+    private LocalDate inicioMatricula;
+    private LocalDate fimMatricula;
+    private int minimoAlunos;
+    private int maximoAlunos;
+    private SituacaoTurma situacao = SituacaoTurma.ABERTA;
+    private List<HorarioTurma> horarios = new ArrayList<>();
+    private List<Encontro> encontros = new ArrayList<>();
 
-    public Turma(String codigo, Curso curso, Professor professor, int quantidadeMaximaAlunos) {
+    public Turma() {
+    }
+
+    public Turma(String codigo, Curso curso, Professor professor, LocalDate inicioMatricula, LocalDate fimMatricula, int minimoAlunos, int maximoAlunos) {
         this.codigo = codigo;
         this.curso = curso;
         this.professor = professor;
-        this.quantidadeMaximaAlunos = quantidadeMaximaAlunos;
+        this.inicioMatricula = inicioMatricula;
+        this.fimMatricula = fimMatricula;
+        this.minimoAlunos = minimoAlunos;
+        this.maximoAlunos = maximoAlunos;
         this.situacao = SituacaoTurma.ABERTA;
-    }
-
-    public void abrir() {
-        situacao = SituacaoTurma.EM_ANDAMENTO;
-    }
-
-    public void encerrar() {
-        situacao = SituacaoTurma.CONCLUIDA;
     }
 
     public String getCodigo() {
@@ -49,12 +55,36 @@ public class Turma {
         this.professor = professor;
     }
 
-    public int getQuantidadeMaximaAlunos() {
-        return quantidadeMaximaAlunos;
+    public LocalDate getInicioMatricula() {
+        return inicioMatricula;
     }
 
-    public void setQuantidadeMaximaAlunos(int quantidadeMaximaAlunos) {
-        this.quantidadeMaximaAlunos = quantidadeMaximaAlunos;
+    public void setInicioMatricula(LocalDate inicioMatricula) {
+        this.inicioMatricula = inicioMatricula;
+    }
+
+    public LocalDate getFimMatricula() {
+        return fimMatricula;
+    }
+
+    public void setFimMatricula(LocalDate fimMatricula) {
+        this.fimMatricula = fimMatricula;
+    }
+
+    public int getMinimoAlunos() {
+        return minimoAlunos;
+    }
+
+    public void setMinimoAlunos(int minimoAlunos) {
+        this.minimoAlunos = minimoAlunos;
+    }
+
+    public int getMaximoAlunos() {
+        return maximoAlunos;
+    }
+
+    public void setMaximoAlunos(int maximoAlunos) {
+        this.maximoAlunos = maximoAlunos;
     }
 
     public SituacaoTurma getSituacao() {
@@ -65,11 +95,55 @@ public class Turma {
         this.situacao = situacao;
     }
 
+    public List<HorarioTurma> getHorarios() {
+        return horarios;
+    }
+
+    public void setHorarios(List<HorarioTurma> horarios) {
+        this.horarios = horarios;
+    }
+
+    public void adicionarHorario(HorarioTurma horario) {
+        if (horario != null && !horarios.contains(horario)) {
+            horarios.add(horario);
+        }
+    }
+
+    public List<Encontro> getEncontros() {
+        return encontros;
+    }
+
+    public void setEncontros(List<Encontro> encontros) {
+        this.encontros = encontros;
+    }
+
+    public void adicionarEncontro(Encontro encontro) {
+        if (encontro != null && !encontros.contains(encontro)) {
+            encontros.add(encontro);
+        }
+    }
+
+    public boolean isPeriodoMatriculaAberto(LocalDate data) {
+        if (data == null || inicioMatricula == null || fimMatricula == null) return false;
+        return !data.isBefore(inicioMatricula) && !data.isAfter(fimMatricula);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Turma turma)) return false;
+        return Objects.equals(codigo, turma.codigo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(codigo);
+    }
+
     @Override
     public String toString() {
-        String nomeCurso = curso != null ? curso.getNome() : "sem curso";
-        String nomeProfessor = professor != null ? professor.getNome() : "sem professor";
-        return "Turma " + codigo + " | Curso: " + nomeCurso + " | Professor: " + nomeProfessor
-                + " | Situação: " + situacao;
+        return "Turma [" + codigo + "] " + (curso != null ? curso.getIdioma() : "Curso") + " - Prof: " +
+                (professor != null ? professor.getNome() : "Sem prof") + " - Situação: " + situacao +
+                " (" + minimoAlunos + " a " + maximoAlunos + " alunos)";
     }
 }

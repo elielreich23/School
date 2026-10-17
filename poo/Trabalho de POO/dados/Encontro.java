@@ -1,22 +1,51 @@
 package dados;
 
-public class Encontro {
-    private int numero;
-    private Modulo modulo;
-    private String data;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Objects;
 
-    public Encontro(int numero, Modulo modulo, String data) {
-        this.numero = numero;
+public class Encontro {
+    private LocalDate data;
+    private LocalTime horarioInicio;
+    private LocalTime horarioTermino;
+    private Modulo modulo;
+
+    public Encontro() {
+    }
+
+    public Encontro(LocalDate data, LocalTime horarioInicio, LocalTime horarioTermino) {
+        this.data = data;
+        this.horarioInicio = horarioInicio;
+        this.horarioTermino = horarioTermino;
+    }
+
+    public Encontro(LocalDate data, LocalTime horarioInicio, LocalTime horarioTermino, Modulo modulo) {
+        this(data, horarioInicio, horarioTermino);
         this.modulo = modulo;
+    }
+
+    public LocalDate getData() {
+        return data;
+    }
+
+    public void setData(LocalDate data) {
         this.data = data;
     }
 
-    public int getNumero() {
-        return numero;
+    public LocalTime getHorarioInicio() {
+        return horarioInicio;
     }
 
-    public void setNumero(int numero) {
-        this.numero = numero;
+    public void setHorarioInicio(LocalTime horarioInicio) {
+        this.horarioInicio = horarioInicio;
+    }
+
+    public LocalTime getHorarioTermino() {
+        return horarioTermino;
+    }
+
+    public void setHorarioTermino(LocalTime horarioTermino) {
+        this.horarioTermino = horarioTermino;
     }
 
     public Modulo getModulo() {
@@ -27,17 +56,24 @@ public class Encontro {
         this.modulo = modulo;
     }
 
-    public String getData() {
-        return data;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Encontro encontro)) return false;
+        return Objects.equals(data, encontro.data) &&
+                Objects.equals(horarioInicio, encontro.horarioInicio) &&
+                Objects.equals(horarioTermino, encontro.horarioTermino) &&
+                Objects.equals(modulo, encontro.modulo);
     }
 
-    public void setData(String data) {
-        this.data = data;
+    @Override
+    public int hashCode() {
+        return Objects.hash(data, horarioInicio, horarioTermino, modulo);
     }
 
     @Override
     public String toString() {
-        String nomeModulo = modulo != null ? modulo.getNome() : "sem módulo";
-        return "Encontro " + numero + " | Data: " + data + " | Módulo: " + nomeModulo;
+        return "Encontro em " + data + " das " + horarioInicio + " às " + horarioTermino +
+                (modulo != null ? " — Módulo " + modulo.getNumero() : "");
     }
 }

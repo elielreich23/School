@@ -1,27 +1,19 @@
 package dados;
 
-import negocio.RegraNegocioException;
+import java.math.BigDecimal;
 
 public class Nota {
-    private Aluno aluno;
     private Avaliacao avaliacao;
-    private double nota;
+    private BigDecimal pontuacao;
+    private String observacoes;
 
-    public Nota(Aluno aluno, Avaliacao avaliacao, double nota) {
-        if (nota < 0 || nota > 10) {
-            throw new RegraNegocioException("A nota deve estar entre 0 e 10.");
-        }
-        this.aluno = aluno;
+    public Nota() {
+    }
+
+    public Nota(Avaliacao avaliacao, BigDecimal pontuacao, String observacoes) {
         this.avaliacao = avaliacao;
-        this.nota = nota;
-    }
-
-    public Aluno getAluno() {
-        return aluno;
-    }
-
-    public void setAluno(Aluno aluno) {
-        this.aluno = aluno;
+        this.pontuacao = pontuacao;
+        this.observacoes = observacoes;
     }
 
     public Avaliacao getAvaliacao() {
@@ -32,21 +24,25 @@ public class Nota {
         this.avaliacao = avaliacao;
     }
 
-    public double getNota() {
-        return nota;
+    public BigDecimal getPontuacao() {
+        return pontuacao;
     }
 
-    public void setNota(double nota) {
-        if (nota < 0 || nota > 10) {
-            throw new RegraNegocioException("A nota deve estar entre 0 e 10.");
-        }
-        this.nota = nota;
+    public void setPontuacao(BigDecimal pontuacao) {
+        this.pontuacao = pontuacao;
+    }
+
+    public String getObservacoes() {
+        return observacoes;
+    }
+
+    public void setObservacoes(String observacoes) {
+        this.observacoes = observacoes;
     }
 
     @Override
     public String toString() {
-        String nomeAluno = aluno != null ? aluno.getNome() : "sem aluno";
-        String descAvaliacao = avaliacao != null ? avaliacao.getDescricao() : "sem avaliação";
-        return "Nota de " + nomeAluno + " em " + descAvaliacao + ": " + nota;
+        return "Nota: " + pontuacao + " (Avaliação: " + (avaliacao != null ? avaliacao.getIdentificador() : "N/A") +
+                (observacoes != null && !observacoes.isBlank() ? " - Obs: " + observacoes : "") + ")";
     }
 }
