@@ -45,25 +45,37 @@ public class Rota {
         clientes.add(cliente);
     }
 
-    /** TODO (Tarefa 1): soma das demandas dos clientes da rota. Use inst.q(c). */
     public int carga() {
-        throw new UnsupportedOperationException("Tarefa 1: implemente Rota.carga()");
+        int total = 0;
+        for (int cliente : clientes) {
+            total += inst.q(cliente);
+        }
+        return total;
     }
 
     /**
-     * TODO (Tarefa 1): distância total da rota, saindo do depósito (0),
+     * Distância total da rota, saindo do depósito (0),
      * visitando os clientes na ordem e voltando ao depósito. Rota vazia tem distância 0.
      */
     public double distancia() {
-        throw new UnsupportedOperationException("Tarefa 1: implemente Rota.distancia()");
+        if (clientes.isEmpty()) {
+            return 0.0;
+        }
+
+        double total = inst.d(0, clientes.get(0));
+        for (int i = 0; i < clientes.size() - 1; i++) {
+            total += inst.d(clientes.get(i), clientes.get(i + 1));
+        }
+        total += inst.d(clientes.get(clientes.size() - 1), 0);
+        return total;
     }
 
     /**
-     * TODO (Tarefa 1): a rota é viável se respeita a capacidade (carga <= inst.Q())
+     * A rota é viável se respeita a capacidade (carga <= inst.Q())
      * e a distância máxima (distancia <= inst.L()).
      */
     public boolean ehViavel() {
-        throw new UnsupportedOperationException("Tarefa 1: implemente Rota.ehViavel()");
+        return carga() <= inst.Q() && distancia() <= inst.L() + 1e-9;
     }
 
     public Rota copia() {
