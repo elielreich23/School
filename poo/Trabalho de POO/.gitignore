@@ -6,8 +6,6 @@
 *.gif
 *.webp
 *.svg
-
-
-
+#no need to panick 
 # Workspace
 workspace/
