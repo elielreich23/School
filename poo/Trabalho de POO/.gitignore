@@ -7,8 +7,7 @@
 *.webp
 *.svg
 
-# Arquivos Markdown
-*.md
+
 
 # Workspace
 workspace/
