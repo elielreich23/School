@@ -2,6 +2,7 @@ import dados.Animal;
 import dados.Aquario;
 import dados.Peixe;
 import dados.Viveiro;
+import exceptions.EspacoIndisponivelException;
 import negocio.Zoologico;
 
 import java.util.Scanner;
@@ -266,23 +267,24 @@ public class Principal {
 
         teclado.nextLine();
 
+        if (animalIndice < 0 || animalIndice >= animais.length) {
+            System.out.println("Opção de animal inválida.");
+            return;
+        }
+
+        if (viveiroIndice < 0 || viveiroIndice >= viveiros.length) {
+            System.out.println("Opção de viveiro inválida.");
+            return;
+        }
+
         Animal animal = animais[animalIndice];
         Viveiro viveiro = viveiros[viveiroIndice];
 
-        boolean sucesso =
-                zoologico.alocarAnimal(animal, viveiro);
-
-        if (sucesso) {
-
-            System.out.println(
-                    "Animal alocado com sucesso!"
-            );
-
-        } else {
-
-            System.out.println(
-                    "Não foi possível alocar o animal."
-            );
+        try {
+            zoologico.alocarAnimal(animal, viveiro);
+            System.out.println("Animal alocado com sucesso!");
+        } catch (EspacoIndisponivelException e) {
+            System.out.println("Não foi possível alocar o animal: " + e.getMessage());
         }
     }
 
@@ -366,6 +368,10 @@ public class Principal {
                     "Espaço ocupado: "
                     + viveiro.espacoOcupado()
             );
+            System.out.println(
+                    "Espaço disponível: "
+                    + viveiro.areaDisponivel()
+            );
         }
     }
 
@@ -392,6 +398,14 @@ public class Principal {
             );
             System.out.println(
                     "Volume: " + aquario.calculaEspaco()
+            );
+            System.out.println(
+                    "Espaço ocupado: "
+                    + aquario.espacoOcupado()
+            );
+            System.out.println(
+                    "Volume disponível: "
+                    + aquario.volumeDisponivel()
             );
             System.out.println(
                     "Temperatura: "

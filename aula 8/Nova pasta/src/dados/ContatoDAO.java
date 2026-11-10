@@ -8,7 +8,15 @@ public class ContatoDAO {
     private final ArquivoContatoDAO arquivoDAO;
 
     public ContatoDAO() {
-        arquivoDAO = new ArquivoContatoDAO("contatos.csv");
+        this("contatos.csv");
+    }
+
+    public ContatoDAO(String caminhoArquivo) {
+        arquivoDAO = new ArquivoContatoDAO(caminhoArquivo);
+    }
+
+    public String getCaminhoArquivo() {
+        return arquivoDAO.getArquivo().toString();
     }
 
     // Adiciona o contato ao final do arquivo.

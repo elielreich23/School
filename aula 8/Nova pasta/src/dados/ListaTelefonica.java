@@ -7,13 +7,40 @@ import java.util.List;
 public class ListaTelefonica {
 
     private final List<Contato> contatos;
-    private final ContatoDAO contatoDAO;
+    private ContatoDAO contatoDAO;
 
     public ListaTelefonica() {
-        contatoDAO = new ContatoDAO();
+        this("contatos.csv");
+    }
+
+    public ListaTelefonica(String caminhoArquivo) {
+        contatoDAO = new ContatoDAO(caminhoArquivo);
 
         // Carrega os contatos existentes ao iniciar.
         contatos = contatoDAO.getAll();
+    }
+
+    public String getCaminhoArquivo() {
+        return contatoDAO.getCaminhoArquivo();
+    }
+
+    // Lê um CSV externo e passa a usá-lo como arquivo de trabalho.
+    public void carregarArquivoExterno(String caminhoArquivo) {
+        if (caminhoArquivo == null || caminhoArquivo.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Informe o caminho de um arquivo .csv.");
+        }
+
+        String caminho = caminhoArquivo.trim();
+
+        if (!caminho.toLowerCase().endsWith(".csv")) {
+            throw new IllegalArgumentException(
+                    "O arquivo precisa ter extensão .csv.");
+        }
+
+        contatoDAO = new ContatoDAO(caminho);
+        contatos.clear();
+        contatos.addAll(contatoDAO.getAll());
     }
 
     public void adicionarContato(Contato contato) {

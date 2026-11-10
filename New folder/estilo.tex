@@ -1,0 +1,102 @@
+% Estilo compartilhado pelas aulas (incluído com \input{../estilo})
+% Usa o template institucional (template/Estilo.sty: Madrid + orchid) e acrescenta
+% apenas o necessário para figuras, pseudocódigo e código.
+\usepackage{template/Estilo}
+\graphicspath{{template/images/}}
+\IfFileExists{portuguese.ldf}{\usepackage[brazilian]{babel}}{}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,decorations.pathreplacing}
+\usepackage[noend]{algpseudocode}
+
+% ---------- Cores ----------
+\definecolor{azul}{rgb}{0.2,0.2,0.7}
+\colorlet{azulclaro}{azul!12}
+\definecolor{laranja}{HTML}{D9622B}
+\definecolor{verde}{HTML}{2E7D32}
+\definecolor{vermelho}{HTML}{C62828}
+\definecolor{cinza}{HTML}{6B6B6B}
+\definecolor{roxo}{HTML}{6A1B9A}
+
+% Tema em verde (tom da marca UDESC) no lugar do azul padrão do Madrid
+\definecolor{verdetema}{HTML}{1E6B34}
+\usecolortheme[named=verdetema]{structure}
+
+% Blocos de exemplo/alerta (exemplo em azul para não se confundir com o tema)
+\setbeamercolor{block title example}{fg=white,bg=azul}
+\setbeamercolor{block body example}{bg=azul!8}
+\setbeamercolor{block title alerted}{fg=white,bg=laranja}
+\setbeamercolor{block body alerted}{bg=laranja!8}
+
+% Agenda no início de cada seção, destacando a seção atual
+\AtBeginSection[]{
+  \begin{frame}
+    \frametitle{Agenda da apresentação}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+% ---------- Código ----------
+\lstset{
+  language=Java,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{azul}\bfseries,
+  commentstyle=\color{cinza}\itshape,
+  stringstyle=\color{verde},
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  rulecolor=\color{azulclaro},
+  backgroundcolor=\color{azulclaro!30},
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+           {ã}{{\~a}}1 {õ}{{\~o}}1 {ç}{{\c c}}1 {â}{{\^a}}1 {ê}{{\^e}}1 {ô}{{\^o}}1
+}
+
+% ---------- Pseudocódigo em português ----------
+\algrenewcommand\algorithmicwhile{\textbf{enquanto}}
+\algrenewcommand\algorithmicdo{\textbf{faça}}
+\algrenewcommand\algorithmicfor{\textbf{para}}
+\algrenewcommand\algorithmicforall{\textbf{para todo}}
+\algrenewcommand\algorithmicif{\textbf{se}}
+\algrenewcommand\algorithmicthen{\textbf{então}}
+\algrenewcommand\algorithmicelse{\textbf{senão}}
+\algrenewcommand\algorithmicreturn{\textbf{retorne}}
+\algrenewcommand\algorithmicrepeat{\textbf{repita}}
+\algrenewcommand\algorithmicuntil{\textbf{até que}}
+\algrenewcommand\algorithmicprocedure{\textbf{procedimento}}
+\algrenewcommand\algorithmicfunction{\textbf{função}}
+\algrenewcommand\algorithmicend{\textbf{fim}}
+
+% ---------- Estilos TikZ ----------
+\tikzset{
+  cli/.style={circle,draw=azul,fill=azulclaro,thick,inner sep=0pt,minimum size=5mm,font=\scriptsize},
+  dep/.style={rectangle,draw=laranja,fill=laranja!25,thick,inner sep=0pt,minimum size=5.5mm,font=\scriptsize\bfseries},
+  pt/.style={circle,fill=azul,inner sep=0pt,minimum size=2mm},
+  aresta/.style={-{Stealth[length=2mm]},thick,azul},
+  arestaB/.style={-{Stealth[length=2mm]},thick,laranja},
+  arestaC/.style={-{Stealth[length=2mm]},thick,verde},
+  removida/.style={thick,dashed,vermelho},
+  nova/.style={very thick,verde},
+}
+
+% ---------- Atalhos ----------
+\newcommand{\destaque}[1]{\textcolor{laranja}{\textbf{#1}}}
+\newcommand{\nota}[1]{{\color{cinza}\footnotesize #1}}
+\newcommand{\fonte}[1]{{\color{cinza}\scriptsize Fonte: #1}}
+
+% ---------- Capa (padrão do template) ----------
+\institute[UDESC/CCT]{Universidade do Estado de Santa Catarina -- UDESC/CCT\\
+  Departamento de Ciência da Computação -- DCC\\
+  Programa de Pós-Graduação em Computação Aplicada -- PPGCA}
+\date[]{Joinville -- SC, 2026/2}
+\setbeamercovered{dynamic}
+% Logos com a mesma altura, centralizadas verticalmente e agrupadas no centro
+\titlegraphic{
+  \vspace*{-0.3cm}
+  \adjustbox{valign=c}{\includegraphics[height=0.65cm]{ppgca}}\hspace{1.2cm}%
+  \adjustbox{valign=c}{\includegraphics[height=0.85cm]{marcaudesc}}\hspace{1.2cm}%
+  \adjustbox{valign=c}{\includegraphics[height=0.65cm]{dcclogo}}
+}

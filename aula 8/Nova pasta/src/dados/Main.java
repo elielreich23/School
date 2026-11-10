@@ -7,7 +7,10 @@ public class Main {
     public static void main(String[] args) {
 
         Scanner scanner = new Scanner(System.in);
-        ListaTelefonica lista = new ListaTelefonica();
+        String arquivoInicial = args.length > 0 ? args[0] : "contatos.csv";
+        ListaTelefonica lista = new ListaTelefonica(arquivoInicial);
+
+        System.out.println("Arquivo CSV: " + lista.getCaminhoArquivo());
 
         int opcao;
 
@@ -16,6 +19,7 @@ public class Main {
             System.out.println("1 - Adicionar contato");
             System.out.println("2 - Exibir contatos");
             System.out.println("3 - Remover contato");
+            System.out.println("4 - Carregar arquivo CSV externo");
             System.out.println("0 - Sair");
             System.out.print("Escolha: ");
 
@@ -56,6 +60,25 @@ public class Main {
                             new Contato(nomeRemover, telefoneRemover));
 
                     System.out.println("Operação de remoção concluída.");
+                    break;
+
+                case 4:
+                    System.out.print("Caminho do arquivo .csv: ");
+                    String caminho = scanner.nextLine();
+
+                    try {
+                        lista.carregarArquivoExterno(caminho);
+                        System.out.println(
+                                "Arquivo carregado: "
+                                + lista.getCaminhoArquivo());
+                        System.out.println(
+                                "Contatos lidos: "
+                                + lista.getContatos().size());
+                    } catch (RuntimeException e) {
+                        System.out.println(
+                                "Não foi possível ler o arquivo: "
+                                + e.getMessage());
+                    }
                     break;
 
                 case 0:

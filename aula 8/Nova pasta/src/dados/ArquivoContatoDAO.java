@@ -11,7 +11,11 @@ public class ArquivoContatoDAO {
     private final Path arquivo;
 
     public ArquivoContatoDAO(String nomeArquivo) {
-        arquivo = Paths.get(nomeArquivo);
+        arquivo = Paths.get(nomeArquivo).toAbsolutePath().normalize();
+    }
+
+    public Path getArquivo() {
+        return arquivo;
     }
 
     // Converte um contato para uma linha CSV.
@@ -22,16 +26,16 @@ public class ArquivoContatoDAO {
 
     // Converte uma linha CSV em um contato.
     public Contato fromCSV(String linha) {
-        String[] partes = linha.split(";", -1);
+        List<String> partes = dividirCampos(linha);
 
-        if (partes.length != 2) {
+        if (partes.size() != 2) {
             throw new IllegalArgumentException(
                     "Linha CSV inválida: " + linha);
         }
 
         return new Contato(
-                desescapar(partes[0]),
-                desescapar(partes[1])
+                desescapar(partes.get(0).trim()),
+                desescapar(partes.get(1).trim())
         );
     }
 
@@ -48,9 +52,11 @@ public class ArquivoContatoDAO {
                     arquivo, StandardCharsets.UTF_8);
 
             for (String linha : linhas) {
-                if (!linha.isBlank()) {
-                    contatos.add(fromCSV(linha));
+                linha = linha.replace("\uFEFF", "");
+                if (linha.isBlank() || ehCabecalho(linha)) {
+                    continue;
                 }
+                contatos.add(fromCSV(linha));
             }
 
         } catch (IOException e) {
@@ -88,6 +94,42 @@ public class ArquivoContatoDAO {
             throw new RuntimeException(
                     "Erro ao salvar contatos no arquivo.", e);
         }
+    }
+
+    private boolean ehCabecalho(String linha) {
+        String normalizada = linha.replace("\uFEFF", "").trim().toLowerCase();
+        return normalizada.equals("nome;telefone")
+                || normalizada.equals("nome,telefone")
+                || normalizada.startsWith("nome;")
+                || normalizada.startsWith("nome,");
+    }
+
+    // Aceita CSV com ";" ou ",", respeitando campos escapados.
+    private List<String> dividirCampos(String linha) {
+        char separador = linha.indexOf(';') >= 0 ? ';' : ',';
+        List<String> partes = new ArrayList<>();
+        StringBuilder atual = new StringBuilder();
+        boolean escape = false;
+
+        for (int i = 0; i < linha.length(); i++) {
+            char c = linha.charAt(i);
+
+            if (escape) {
+                atual.append(c);
+                escape = false;
+            } else if (c == '\\') {
+                atual.append(c);
+                escape = true;
+            } else if (c == separador) {
+                partes.add(atual.toString());
+                atual.setLength(0);
+            } else {
+                atual.append(c);
+            }
+        }
+
+        partes.add(atual.toString());
+        return partes;
     }
 
     // Protege os caracteres especiais usados na separação CSV.

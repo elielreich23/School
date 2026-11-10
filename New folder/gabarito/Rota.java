@@ -1,0 +1,81 @@
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Uma rota de um veículo. A lista guarda apenas os clientes:
+ * o depósito (0) no início e no fim é implícito.
+ *
+ * Exemplo: clientes = [3, 7, 1] representa 0 -> 3 -> 7 -> 1 -> 0.
+ *
+ * Obs.: para simplificar, carga() e distancia() são recalculadas a cada chamada (O(n)).
+ * Uma implementação mais eficiente guardaria esses valores em atributos e os atualizaria a cada movimento.
+ */
+public class Rota {
+    private final Instancia inst;
+    private final List<Integer> clientes;
+
+    public Rota(Instancia inst) {
+        this(inst, new ArrayList<>());
+    }
+
+    public Rota(Instancia inst, List<Integer> clientes) {
+        this.inst = inst;
+        this.clientes = new ArrayList<>(clientes);
+    }
+
+    /** Lista (modificável) de clientes, na ordem de visita. */
+    public List<Integer> getClientes() {
+        return clientes;
+    }
+
+    public int tamanho() {
+        return clientes.size();
+    }
+
+    public boolean vazia() {
+        return clientes.isEmpty();
+    }
+
+    /** Cliente na posição pos da rota. */
+    public int get(int pos) {
+        return clientes.get(pos);
+    }
+
+    public void adicionar(int cliente) {
+        clientes.add(cliente);
+    }
+
+    /** Soma das demandas dos clientes da rota. */
+    public int carga() {
+        int total = 0;
+        for (int c : clientes) {
+            total += inst.q(c);
+        }
+        return total;
+    }
+
+    /** Distância total: depósito -> clientes na ordem -> depósito. */
+    public double distancia() {
+        double total = 0;
+        int anterior = 0;
+        for (int c : clientes) {
+            total += inst.d(anterior, c);
+            anterior = c;
+        }
+        return total + inst.d(anterior, 0);
+    }
+
+    /** Respeita a capacidade Q e a distância máxima L? */
+    public boolean ehViavel() {
+        return carga() <= inst.Q() && distancia() <= inst.L() + 1e-9;
+    }
+
+    public Rota copia() {
+        return new Rota(inst, clientes);
+    }
+
+    @Override
+    public String toString() {
+        return clientes.toString();
+    }
+}
