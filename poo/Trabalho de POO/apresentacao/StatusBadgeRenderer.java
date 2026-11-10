@@ -4,15 +4,14 @@ import dados.NivelCurso;
 import dados.SituacaoMensalidade;
 import dados.SituacaoTurma;
 import dados.TipoAvaliacao;
-
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.*;
 
 /**
  * Renderizador de células de tabela que desenha "badges" (etiquetas coloridas)
- * para enumerações e estados como Situação de Turma, Situação de Mensalidade, etc.
+ * para enumerações e estados como Situação de Turma, Situação de Mensalidade, etc. tambem das cogu
  */
 public class StatusBadgeRenderer extends DefaultTableCellRenderer {
 
