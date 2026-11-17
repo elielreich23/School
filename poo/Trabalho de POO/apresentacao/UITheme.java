@@ -5,6 +5,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
@@ -135,9 +136,21 @@ public final class UITheme {
         return cpf;
     }
 
+    /**
+     * O tema do Windows redesenha o botão no hover e troca a cor do texto,
+     * deixando o rótulo da mesma cor do fundo. Este UI pinta só as cores definidas aqui.
+     */
+    static void manterTextoLegivel(JButton btn) {
+        btn.setUI(new BasicButtonUI());
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
+        btn.setRolloverEnabled(false);
+    }
+
     /** Cria um botão primário com visual moderno em azul royal. */
     public static JButton createPrimaryButton(String text) {
         JButton btn = new JButton(text);
+        manterTextoLegivel(btn);
         btn.setFont(FONT_BOLD);
         btn.setForeground(Color.WHITE);
         btn.setBackground(COLOR_PRIMARY);
@@ -160,6 +173,7 @@ public final class UITheme {
     /** Cria um botão secundário suave e bem delineado. */
     public static JButton createSecondaryButton(String text) {
         JButton btn = new JButton(text);
+        manterTextoLegivel(btn);
         btn.setFont(FONT_BOLD);
         btn.setForeground(COLOR_SECONDARY_TEXT);
         btn.setBackground(COLOR_SECONDARY);
@@ -182,6 +196,7 @@ public final class UITheme {
     /** Cria um botão para ações perigosas/destrutivas (remover, cancelar). */
     public static JButton createDangerButton(String text) {
         JButton btn = new JButton(text);
+        manterTextoLegivel(btn);
         btn.setFont(FONT_BOLD);
         btn.setForeground(COLOR_DANGER_DARK);
         btn.setBackground(COLOR_DANGER_LIGHT);
@@ -330,9 +345,9 @@ public final class UITheme {
         JPanel bar = new JPanel(new BorderLayout(8, 0));
         bar.setOpaque(false);
 
-        JLabel icon = new JLabel("🔍");
-        icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
-        icon.setForeground(COLOR_TEXT_MUTED);
+        JLabel label = new JLabel("Buscar:");
+        label.setFont(FONT_SMALL);
+        label.setForeground(COLOR_TEXT_MUTED);
 
         JTextField field = createTextField(20);
         field.putClientProperty("JTextField.placeholderText", placeholder);
@@ -344,16 +359,15 @@ public final class UITheme {
             @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { update(); }
         });
 
-        JButton btnLimpar = new JButton("×");
-        btnLimpar.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        JButton btnLimpar = new JButton("Limpar");
+        manterTextoLegivel(btnLimpar);
+        btnLimpar.setFont(FONT_SMALL);
         btnLimpar.setForeground(COLOR_TEXT_MUTED);
-        btnLimpar.setBorder(new EmptyBorder(2, 6, 2, 6));
-        btnLimpar.setContentAreaFilled(false);
-        btnLimpar.setFocusPainted(false);
-        btnLimpar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnLimpar.setBackground(COLOR_SECONDARY);
+        btnLimpar.setMargin(new Insets(2, 6, 2, 6));
         btnLimpar.addActionListener(e -> field.setText(""));
 
-        bar.add(icon, BorderLayout.WEST);
+        bar.add(label, BorderLayout.WEST);
         bar.add(field, BorderLayout.CENTER);
         bar.add(btnLimpar, BorderLayout.EAST);
         return bar;
