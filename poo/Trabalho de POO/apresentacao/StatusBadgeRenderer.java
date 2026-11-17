@@ -10,7 +10,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
 /**
- * Renderizador de células de tabela que desenha "badges" (etiquetas coloridas)
+ * Renderizador de células de tabela que desenha "badges" (etiquetas coloridas) com espaco 
  * para enumerações e estados como Situação de Turma, Situação de Mensalidade, etc. tambem das cogu
  */
 public class StatusBadgeRenderer extends DefaultTableCellRenderer {
