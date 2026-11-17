@@ -11,7 +11,9 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -26,6 +28,7 @@ public class UIFormDialog extends JDialog {
     private final Map<String, JComponent> campos = new HashMap<>();
     private final Map<String, Boolean> camposObrigatorios = new HashMap<>();
     private final Map<String, String> nomesCampos = new HashMap<>();
+    private final Set<String> camposDecimais = new HashSet<>();
     private boolean confirmado = false;
     private int linhaAtual = 0;
 
@@ -171,6 +174,7 @@ public class UIFormDialog extends JDialog {
         }
         tf.setToolTipText("Exemplo: 150.00 ou 150,00");
         adicionarLinha(chave, label, tf, obrigatorio);
+        camposDecimais.add(chave);
     }
 
     public void addDateField(String chave, String label, LocalDate inicial, boolean obrigatorio) {
@@ -265,6 +269,15 @@ public class UIFormDialog extends JDialog {
             JComponent comp = entry.getValue();
             if (comp instanceof JTextField tf) {
                 String texto = tf.getText().trim();
+                if (camposDecimais.contains(chave) && !texto.isEmpty()) {
+                    try {
+                        converterDecimal(texto);
+                    } catch (NumberFormatException ex) {
+                        exibirErro("Informe um número válido para '" + nomesCampos.get(chave) + "'.");
+                        tf.requestFocus();
+                        return;
+                    }
+                }
                 if (!texto.isEmpty()) {
                     String nome = nomesCampos.get(chave);
                     if (nome.contains("AAAA-MM-DD")) {
@@ -293,7 +306,7 @@ public class UIFormDialog extends JDialog {
     }
 
     private void exibirErro(String msg) {
-        lblMensagemErro.setText("⚠ " + msg);
+        lblMensagemErro.setText(msg);
     }
 
     public boolean showDialog() {
@@ -328,15 +341,14 @@ public class UIFormDialog extends JDialog {
     public BigDecimal getBigDecimal(String chave) {
         JComponent comp = campos.get(chave);
         if (comp instanceof JTextField tf) {
-            String txt = tf.getText().trim().replace(',', '.');
-            if (txt.isEmpty()) return BigDecimal.ZERO;
-            try {
-                return new BigDecimal(txt);
-            } catch (Exception e) {
-                return BigDecimal.ZERO;
-            }
+            String txt = tf.getText().trim();
+            return txt.isEmpty() ? BigDecimal.ZERO : converterDecimal(txt);
         }
         return BigDecimal.ZERO;
+    }
+
+    private BigDecimal converterDecimal(String texto) {
+        return new BigDecimal(texto.trim().replace(',', '.'));
     }
 
     public LocalDate getDate(String chave) {

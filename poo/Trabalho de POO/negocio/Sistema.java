@@ -679,6 +679,7 @@ public class Sistema {
             throw new RegraNegocioException("RN08: Peso da avaliação deve ser positivo.");
         }
         avaliacao.getModulo().adicionarAvaliacao(avaliacao);
+        avaliacoes.add(avaliacao);
     }
 
     public void registrarNota(Matricula matricula, Avaliacao avaliacao, Nota nota) {

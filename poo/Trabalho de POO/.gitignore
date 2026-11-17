@@ -1,4 +1,5 @@
 *.class
+.md
 # Imagens
 *.png
 *.jpg
@@ -6,9 +7,6 @@
 *.gif
 *.webp
 *.svg
-
-# Arquivos Markdown
-*.md
-
+#no need to panick 
 # Workspace
 workspace/
